@@ -15,11 +15,11 @@ export default defineConfig([
     ...pluginReact.configs.flat.recommended,
     rules: {
       ...pluginReact.configs.flat.recommended.rules,
-      "react/react-in-jsx-scope": "off", // <-- turn off this rule
+      "react/react-in-jsx-scope": "off", 
     },
     settings: {
       react: {
-        version: "detect", // automatically detect React version
+        version: "detect",
       },
     },
   },
