@@ -7,7 +7,7 @@
 Our product is a platform for college students who want a better understanding of locations and events near their college. It will provide everything (club/campus events, study sessions, food locations, etc.)that students may want to go to within and around the college community. Unlike Google Maps and other social media platforms, our product’s content will be centered around the college, so students wouldn’t have to look through different sources (i.e emails, posters, Instagram) just to find out what’s going on. 
 
 ## Frontend 
-1. Navigate to the frontend folder:
+Navigate to the frontend folder:
    ```bash
 	cd front-end
 	
@@ -16,8 +16,7 @@ Our product is a platform for college students who want a better understanding o
 	
 	# Start the development server:
 	npm run dev
-``
-
+```
 App runs at:  [http://localhost:5173](http://localhost:5173)
 
 ## Backend
