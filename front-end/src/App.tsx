@@ -32,12 +32,11 @@ function App() {
             <Route index element={<HomePage />} />
             <Route path="login" element={<LoginPage />} />
             <Route path="*" element={<div>404 Not Found</div>} />
+            <Route path="friends" element={<FriendsPage />} />
             <Route path="friends/:friendId" element={<FriendsPage />} />
             <Route path="groups" element={<ListOfGroupsPage />} />
-            <Route path="m/">
-              <Route index element={<EventPage />} />
-              <Route path="schedule" element={<SchedulePage />} />
-            </Route>
+            <Route path="events" element={<EventPage />} />
+            <Route path="schedule" element={<SchedulePage />} />
             <Route path="group/:groupId">
               <Route index element={<GroupPage />} />
               <Route path="settings" element={<GroupSettingsPage />} />

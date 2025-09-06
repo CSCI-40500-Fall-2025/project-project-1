@@ -14,7 +14,7 @@ interface NavbarProps {
   // setLoggedIn: () => void;
 }
 
-const navItems = ["Dashboard", "Friends", "Activities"];
+const navItems = [ "Friends", "Events", "Groups", "Schedule"];
 
 const Navbar = ({ loggedIn }: NavbarProps) => {
   const navigate = useNavigate();
