@@ -1,11 +1,20 @@
-const API_URL = "http://127.0.0.1:8000"
+const API_URL = "http://localhost:3000"
 
-export async function testUser(username: string) {
+export async function createTestUser() {
+    const testUser = {
+        id: 'test1',
+        email: "testuser@example.com",
+        username: "testuser",
+        password: "password123"
+    };
+
     const res = await fetch(`${API_URL}/user`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username }),
-    })
-    if (!res.ok) throw new Error("Failed to connect to server")
-    return res.json()
+        body: JSON.stringify(testUser),
+    });
+
+    if (!res.ok) throw new Error("Failed to create test user");
+
+    return res.json();
 }
