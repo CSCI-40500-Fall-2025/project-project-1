@@ -3,7 +3,7 @@ import React from "react";
 import { useState, useEffect } from "react";
 import { createTestUser } from "../../services/userServices";
 
-const FirstPage = () => {
+const HomePage = () => {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -27,4 +27,4 @@ const FirstPage = () => {
   );
 };
 
-export default FirstPage;
+export default HomePage;

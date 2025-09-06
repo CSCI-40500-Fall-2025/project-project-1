@@ -5,9 +5,9 @@ import { Outlet } from "react-router-dom";
 const Layout = () => {
   return (
     <>
-      <Navbar loggedIn={false} />
+      <Navbar loggedIn={true} />
       <main>
-        <Outlet /> 
+        <Outlet />
       </main>
     </>
   );

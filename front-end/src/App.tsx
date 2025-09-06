@@ -1,19 +1,54 @@
 import React from "react";
-import LoginPage from "./Pages/LoginPage";
-import HomePage from "./Pages/HomePage";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Layout from "./Pages/Layout";
 
+import Layout from "./Pages/Layout";
+import HomePage from "./Pages/HomePage";
+import LoginPage from "./Pages/LoginPage";
+import FriendsPage from "./Pages/FriendsPage";
+import ListOfGroupsPage from "./Pages/ListOfGroupsPage";
+import GroupPage from "./Pages/GroupPage";
+import GroupSettingsPage from "./Pages/GroupSettingsPage";
+import GroupEventsPage from "./Pages/GroupEventsPage";
+import GroupScheduleEventPage from "./Pages/GroupScheduleEventPage";
+import SchedulePage from "./Pages/SchedulePage";
+import EventPage from "./Pages/EventPage";
+//import { useParams } from 'react-router-dom';
+// import { testUser } from "./services/userServices";
 
 function App() {
+  // const [message, setMessage] = useState("");
+
+  // useEffect(() => {
+  //   testUser("King Julian")
+  //     .then((res) => setMessage(res.message))
+  //     .catch((err) => setMessage(err.message));
+  // }, []); // runs once on mount
+
   return (
     <>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Layout />} >
-            <Route path="/login" element={<LoginPage />} />
+          <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
+            <Route path="login" element={<LoginPage />} />
+            <Route path="*" element={<div>404 Not Found</div>} />
+            <Route path="friends/:friendId" element={<FriendsPage />} />
+            <Route path="groups" element={<ListOfGroupsPage />} />
+            <Route path="m/">
+              <Route index element={<EventPage />} />
+              <Route path="schedule" element={<SchedulePage />} />
+            </Route>
+            <Route path="group/:groupId">
+              <Route index element={<GroupPage />} />
+              <Route path="settings" element={<GroupSettingsPage />} />
+              <Route path="events" element={<GroupEventsPage />} />
+              <Route
+                path="schedule-event"
+                element={<GroupScheduleEventPage />}
+              />
+            </Route>
           </Route>
+          <Route path="*" element={<div>404 Not Found</div>} />
         </Routes>
       </BrowserRouter>
     </>
