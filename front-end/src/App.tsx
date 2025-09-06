@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { testUser } from "./services/userServices";
 import Navbar from "./components/Navbar";
+import LoginPage from "./MainPage";
 
 function App() {
   const [message, setMessage] = useState("");
@@ -13,9 +14,11 @@ function App() {
 
   return (
     <>
-      <Navbar />
+      {/* <Navbar />
+      <LoginCard />
       <div>Bing Bong</div>
-      <div>{message}</div>
+      <div>{message}</div> */}
+      <LoginPage />
     </>
   );
 }
