@@ -8,7 +8,7 @@ import {
   Button,
   Link,
 } from "@mui/material";
-import { useFormStore } from "../store";
+import { useFormStore } from "../../store";
 
 interface RegisterPaneProps {
   email: string;

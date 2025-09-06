@@ -6,10 +6,10 @@ import baseTheme from "./baseTheme";
 import CssBaseline from "@mui/material/CssBaseline";
 
 createRoot(document.getElementById("root")!).render(
-  <ThemeProvider theme={baseTheme}>
-    <CssBaseline />
-    <StrictMode>
+  <StrictMode>
+    <ThemeProvider theme={baseTheme}>
+      <CssBaseline />
       <App />
-    </StrictMode>
-  </ThemeProvider>
+    </ThemeProvider>
+  </StrictMode>
 );

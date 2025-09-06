@@ -1,3 +1,4 @@
+import React from "react";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
@@ -5,13 +6,22 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
+import { useNavigate } from "react-router-dom";
+import Divider from "@mui/material/Divider";
 
 interface NavbarProps {
   loggedIn: boolean;
-  setLoggingIn: () => void;
+  // setLoggedIn: () => void;
 }
 
-const Navbar = ({loggedIn, setLoggingIn}: NavbarProps) =>{
+const navItems = ["Dashboard", "Friends", "Activities"];
+
+const Navbar = ({ loggedIn }: NavbarProps) => {
+  const navigate = useNavigate();
+  const handleNavItemClick = (item: string) => {
+    navigate("/" + item.toLowerCase());
+  };
+
   return (
     <Box sx={{ flexGrow: 1, borderRadius: 1, overflow: "hidden" }}>
       <AppBar position="static">
@@ -25,13 +35,37 @@ const Navbar = ({loggedIn, setLoggingIn}: NavbarProps) =>{
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{ textDecoration: "none", color: "inherit" }}
+            onClick={() => handleNavItemClick("")}
+            flexGrow={1}
+          >
             Bing Bong
           </Typography>
-          {!loggedIn && <Button color="inherit" onClick={setLoggingIn}>Login</Button>}
+          {loggedIn ? (
+            navItems.map((item) => (
+              <Button
+                key={item}
+                onClick={() => handleNavItemClick(item)}
+                sx={{ textDecoration: "none", color: "inherit" }}
+              >
+                {item}
+              </Button>
+            ))
+          ) : (
+            <>
+              {" "}
+              <Divider />
+              <Button color="inherit" onClick={() => handleNavItemClick("login")}>
+                Login
+              </Button>
+            </>
+          )}
         </Toolbar>
       </AppBar>
     </Box>
   );
-}
+};
 export default Navbar;
