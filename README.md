@@ -20,16 +20,7 @@ Navigate to the frontend folder:
 App runs at:  [http://localhost:5173](http://localhost:5173)
 
 ## Backend
-* **Python Version 3.12.0**
-
-1. (Optional) Create and activate a virtual environment (Keeps dependencies for this project separate from your global python packages and other projects).
-        
-2. Install dependencies:
-    
-    `pip install -r requirements.txt` 
-    
-3. Start the server:
-    
-    `uvicorn main:app --reload` 
-    
-The API will be available at [http://127.0.0.1:8000](http://127.0.0.1:8000)  
+	```bash
+	node server.js
+	```
+ Server runs at: http://localhost:3000
