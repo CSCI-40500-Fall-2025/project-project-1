@@ -1,4 +1,4 @@
-import React from "react";
+// import React from "react";
 import {
   Card,
   CardContent,
@@ -8,7 +8,7 @@ import {
   Button,
   Link,
 } from "@mui/material";
-import { useFormStore } from "../../store";
+// import { useFormStore } from "../../store";
 
 interface RegisterPaneProps {
   email: string;
@@ -18,7 +18,7 @@ interface RegisterPaneProps {
 
 const RegisterPane = ({
   email,
-  setEmail,
+  // setEmail,
   onSwitchToLogin,
 }: RegisterPaneProps) => (
   <Card sx={{ minWidth: 350, padding: 2, boxShadow: 3, borderRadius: 5 }}>
