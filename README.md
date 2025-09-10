@@ -20,7 +20,26 @@ Navigate to the frontend folder:
 App runs at:  [http://localhost:5173](http://localhost:5173)
 
 ## Backend
-	```bash
+```bash
+	cd back-end
 	node server.js
-	```
- Server runs at: http://localhost:3000
+```
+
+Server runs at: http://localhost:3000
+
+## Deployment:
+In front-end:
+```bash
+	npm run build
+ ```
+
+In root:
+```bash
+	firebase init hosting
+	firebase deploy --only hosting
+```
+
+For Firebase init:
+✔ What do you want to use as your public directory? front-end
+✔ Configure as a single-page app (rewrite all urls to /index.html)? Yes   
+✔ Set up automatic builds and deploys with GitHub? No
