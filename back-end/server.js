@@ -13,10 +13,10 @@ app.use(cors({
 }));
 app.use(express.json()); // parse JSON request body
 
-app.use("/api/user", userRoutes);
+app.use("/user", userRoutes);
 
 // Routes
-app.get("/api", (req, res) => {
+app.get("/", (req, res) => {
   res.json({ message: "Hi this is server" });
 });
 
@@ -24,6 +24,3 @@ app.get("/api", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
-
-// Export for Firebase (hosted) costs money, prob remove later
-// export const api = functions.https.onRequest(app);

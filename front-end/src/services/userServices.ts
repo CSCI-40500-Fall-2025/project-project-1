@@ -1,11 +1,11 @@
-const API_URL = "http://localhost:3000/api"
+const API_URL = "http://localhost:3000"
 
 export async function createTestUser() {
     const testUser = {
-        id: 'test1',
-        email: "testuser@example.com",
-        username: "testuser",
-        password: "password123"
+        id: '1', // auto generated so this isnt rlly used
+        email: "bingbong@example.com",
+        username: "binging",
+        password: "bonging123"
     };
 
     const res = await fetch(`${API_URL}/user`, {
