@@ -1,20 +1,33 @@
 const API_URL = "http://localhost:3000"
 
-export async function createTestUser() {
-    const testUser = {
-        id: '1', // auto generated so this isnt rlly used
-        email: "bingbong@example.com",
-        username: "binging",
-        password: "bonging123"
+export async function createUser(email: string, username: string, password: string) {
+    const user = {
+        email: email,
+        username: username,
+        password: password
     };
 
     const res = await fetch(`${API_URL}/user`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(testUser),
+        body: JSON.stringify(user),
     });
 
-    if (!res.ok) throw new Error("Failed to create test user");
+    const data = await res.json();
+    if (!res.ok) {
+        throw data //new Error(data);
+    }
 
+    return data
+}
+
+
+
+export async function getUser(){
+    const res = await fetch(`${API_URL}/user`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+    });
+    if (!res.ok) throw new Error("Failed to fetch users");
     return res.json();
 }

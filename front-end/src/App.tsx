@@ -16,13 +16,6 @@ import EventPage from "./Pages/EventPage";
 // import { testUser } from "./services/userServices";
 
 function App() {
-  // const [message, setMessage] = useState("");
-
-  // useEffect(() => {
-  //   testUser("King Julian")
-  //     .then((res) => setMessage(res.message))
-  //     .catch((err) => setMessage(err.message));
-  // }, []); // runs once on mount
 
   return (
     <>

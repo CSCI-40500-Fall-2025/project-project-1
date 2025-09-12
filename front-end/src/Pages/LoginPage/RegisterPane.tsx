@@ -8,17 +8,30 @@ import {
   Button,
   Link,
 } from "@mui/material";
-// import { useFormStore } from "../../store";
 
 interface RegisterPaneProps {
   email: string;
-  setEmail: (email: string) => void;
+  setEmail: React.Dispatch<React.SetStateAction<string>>;
+  username: string;
+  setUsername: React.Dispatch<React.SetStateAction<string>>;
+  password: string;
+  setPassword: React.Dispatch<React.SetStateAction<string>>;
+  confirmPassword: string;
+  setConfirmPassword: React.Dispatch<React.SetStateAction<string>>;
+  onSubmit: (e: React.FormEvent) => void;
   onSwitchToLogin: () => void;
 }
 
 const RegisterPane = ({
   email,
-  // setEmail,
+  setEmail,
+  username,
+  setUsername,
+  password,
+  setPassword,
+  confirmPassword,
+  setConfirmPassword,
+  onSubmit,
   onSwitchToLogin,
 }: RegisterPaneProps) => (
   <Card sx={{ minWidth: 350, padding: 2, boxShadow: 3, borderRadius: 5 }}>
@@ -28,7 +41,7 @@ const RegisterPane = ({
       </Typography>
       <Box
         component="form"
-        //onSubmit={handleRegister}
+        onSubmit={onSubmit}
         sx={{ display: "flex", flexDirection: "column", gap: 2 }}
       >
         <TextField
@@ -37,8 +50,8 @@ const RegisterPane = ({
           variant="outlined"
           fullWidth
           required
-          value={name}
-          //onChange={(e) => setName(e.target.value)}
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
         />
         <TextField
           label="Email"
@@ -47,7 +60,7 @@ const RegisterPane = ({
           fullWidth
           required
           value={email}
-          //onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
         />
         <TextField
           label="Password"
@@ -55,8 +68,8 @@ const RegisterPane = ({
           variant="outlined"
           fullWidth
           required
-          //value={password}
-          //onChange={(e) => setPassword(e.target.value)}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
         />
         <TextField
           label="Confirm Password"
@@ -64,8 +77,8 @@ const RegisterPane = ({
           variant="outlined"
           fullWidth
           required
-          //value={confirmPassword}
-          //onChange={(e) => setConfirmPassword(e.target.value)}
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
         />
 
         <Button variant="contained" color="primary" type="submit">
