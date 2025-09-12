@@ -3,6 +3,8 @@
 
 # Bing Bong
 
+Figma Prototype: https://www.figma.com/design/uYJhX81BXaZXSea7oK4Wjr/SWE-Proj?node-id=0-1&t=lr60PfD8MiXTsyvA-1
+
 ## Product Vision
 Our product is a platform for college students who want a better understanding of locations and events near their college. It will provide everything (club/campus events, study sessions, food locations, etc.)that students may want to go to within and around the college community. Unlike Google Maps and other social media platforms, our product’s content will be centered around the college, so students wouldn’t have to look through different sources (i.e emails, posters, Instagram) just to find out what’s going on. 
 
