@@ -6,16 +6,18 @@
 Figma Prototype: https://www.figma.com/design/uYJhX81BXaZXSea7oK4Wjr/SWE-Proj?node-id=0-1&t=lr60PfD8MiXTsyvA-1
 
 ## Product Vision
-Our product is a platform for college students who want a better understanding of locations and events near their college. It will provide everything (club/campus events, study sessions, food locations, etc.)that students may want to go to within and around the college community. Unlike Google Maps and other social media platforms, our product’s content will be centered around the college, so students wouldn’t have to look through different sources (i.e emails, posters, Instagram) just to find out what’s going on. 
+Our product is a platform designed to make organizing friend hangouts simple and stress-free. Rather than endless group chats and scheduling conflicts, users can instantly see when their friends are available. The platform lets people mark their free times, thus creating a shared availability view for the entire group. Built-in reminders and smart suggestions makes planning hangouts effortless so friends can spend less time coordinating and more time actually hanging out.
 
-## Frontend 
+In addition, users can manage multiple friend groups in one place, making it easy to plan separately with different circles of friends and avoid double-booking conflicts.
+
+## Frontend
 Navigate to the frontend folder:
    ```bash
 	cd front-end
-	
+
 	# Install dependencies:
 	npm install
-	
+
 	# Start the development server:
 	npm run dev
 ```
@@ -43,5 +45,5 @@ In root:
 
 For Firebase init:
 ✔ What do you want to use as your public directory? front-end
-✔ Configure as a single-page app (rewrite all urls to /index.html)? Yes   
+✔ Configure as a single-page app (rewrite all urls to /index.html)? Yes
 ✔ Set up automatic builds and deploys with GitHub? No
