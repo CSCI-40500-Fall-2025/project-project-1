@@ -9,5 +9,9 @@ router.post("/", createUser);
 router.post("/login", loginUser);
 router.post("/logout", logoutUser)
 
+// check if user is logged in. Returns { id, username, email} if they are
+router.get("/me", authMiddleware, (req, res) => {
+    res.json(req.user);
+});
 
 export default router;

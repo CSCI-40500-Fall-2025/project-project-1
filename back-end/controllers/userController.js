@@ -30,6 +30,7 @@ import jwt from "jsonwebtoken";
 
 dotenv.config(); 
 
+//test fuction: get all usernames
 export async function getUsers(req, res) {
   try {
     const users = await sql`SELECT username FROM users`;
@@ -95,7 +96,7 @@ export async function loginUser(req, res) {
 
     //jwt token
     const token = jwt.sign(
-      { id: user.id, username: user.username },
+      { id: user.id, username: user.username, email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: "30d" }
     );

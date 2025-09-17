@@ -62,3 +62,11 @@ export async function logoutUser() {
     if (!res.ok) throw new Error("Failed to log out");
     return res.json()
 }
+
+export async function checkLogin() {
+  const res = await fetch(`${API_URL}/user/me`, {
+    credentials: "include",
+  });
+  if (!res.ok) return null;
+  return res.json();
+}
