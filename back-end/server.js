@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import userRoutes from "./routes/user.js";
+import cookieParser from "cookie-parser";
 // import functions from "firebase-functions";
 
 const app = express();
@@ -12,6 +13,7 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json()); // parse JSON request body
+app.use(cookieParser()); // parse cookies
 
 app.use("/api/user", userRoutes);
 

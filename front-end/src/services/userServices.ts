@@ -44,10 +44,21 @@ export async function loginUser(email: string, password: string) {
 }
 
 export async function getUser(){ //for testing
+    // const res = await fetch(`${API_URL}/user`, {
     const res = await fetch(`${API_URL}/user`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
+        credentials: "include" // include cookies in the request
     });
     if (!res.ok) throw new Error("Failed to fetch users");
     return res.json();
+}
+
+export async function logoutUser() {
+    const res = await fetch(`${API_URL}/user/logout`, {
+        method: "POST",
+        credentials: "include", // include cookie to overwrite it
+    });
+    if (!res.ok) throw new Error("Failed to log out");
+    return res.json()
 }

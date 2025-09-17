@@ -1,24 +1,31 @@
 import Box from "@mui/material/Box";
 // import React from "react";
 import { useState, useEffect } from "react";
-import { createUser, getUser } from "../../services/userServices";
+import { getUser, logoutUser } from "../../services/userServices";
 
 interface User {
   username: string;
 }
 const HomePage = () => {
   const [message, setMessage] = useState("");
-  const [users, setUsers] = useState<User[] | null>(null);
+  const [allUsers, setAllUsers] = useState<User[] | []>([]);
   
   useEffect(() => {
     getUser()
       .then((res) => {
-        setUsers(res)
         console.log("users response:", res);
+        setAllUsers(res)
       })
-      .catch((err) => setUsers(err.message));
+      .catch(() => setAllUsers([]));
   }, []); // runs once on mount
 
+  const handleLogout = () => {
+    logoutUser()
+    .then((res) => {
+      console.log("logout response: ", res);
+    })
+    .catch(() => console.log("error logging out"))
+  }
   return (
     <Box
         sx={{
@@ -33,10 +40,11 @@ const HomePage = () => {
           <div>BING BONG {message}</div>
           <div>Users: </div>
           <div>
-            {users && users.map((user, i) => (
+            {allUsers ? allUsers.map((user, i) => (
               <div key={i}>{user.username}</div>
-            ))}
+            )) : ""}
           </div>
+          <button onClick={handleLogout}>Logout</button>
       </Box>
 
   );
