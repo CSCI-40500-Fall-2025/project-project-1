@@ -2,7 +2,13 @@ import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import RegisterPane from "./RegisterPane";
 import LoginPane from "./LoginPane";
-import { createUser } from "../../services/userServices";
+import { createUser, loginUser } from "../../services/userServices";
+
+interface User {
+  id: number;
+  username: string;
+  email: string;
+}
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -10,6 +16,7 @@ const LoginPage = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [registerAccount, setRegisterAccount] = useState(false);
   const [username, setUsername] = useState(""); //used for registering
+  const [user, setUser] = useState<User | null>(null); //for logging in
 
   useEffect(() => {
     console.log(email, password);
@@ -18,8 +25,16 @@ const LoginPage = () => {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Logging in with:", { email, password });
-
-    // TODO: Implement login logic
+    loginUser(email, password)
+      .then((res:any) => {
+        const { id, username, email } = res
+        setUser({ id, username, email });
+        console.log("User logged in:", res);
+        alert("Login successful!");
+      })
+      .catch((err:any) => {
+        alert(`Login failed. ${err.error}`);
+      });
   };
 
   const handleRegister = (e: React.FormEvent) => {
@@ -43,7 +58,6 @@ const LoginPage = () => {
   };
 
   return (
-
       <Box
         sx={{
           display: "flex",

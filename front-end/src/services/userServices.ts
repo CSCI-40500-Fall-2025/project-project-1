@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3000"
+const API_URL = "http://localhost:3000/api"
 
 export async function createUser(email: string, username: string, password: string) {
     const user = {
@@ -21,9 +21,29 @@ export async function createUser(email: string, username: string, password: stri
     return data
 }
 
+export async function loginUser(email: string, password: string) {
+    const credentials = {
+        email: email,
+        password: password
+    };
 
+    const res = await fetch(`${API_URL}/user/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(credentials),
+        credentials: "include" // include cookies in the request
+    });
 
-export async function getUser(){
+    const data = await res.json();
+
+    if (!res.ok) {
+        throw data //new Error(data);
+    }
+
+    return data
+}
+
+export async function getUser(){ //for testing
     const res = await fetch(`${API_URL}/user`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },

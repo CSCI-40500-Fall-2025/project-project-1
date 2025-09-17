@@ -8,12 +8,12 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
-  origin: "*", // allow all for now, change to frontend URL in prod
+  origin: "http://localhost:5173", // frontend URL, set to actual url in production
   credentials: true,
 }));
 app.use(express.json()); // parse JSON request body
 
-app.use("/user", userRoutes);
+app.use("/api/user", userRoutes);
 
 // Routes
 app.get("/", (req, res) => {

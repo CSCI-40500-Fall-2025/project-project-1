@@ -25,6 +25,10 @@
 
 import { sql } from "../services/neon.js";
 import bcrypt from "bcrypt";
+import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
+
+dotenv.config(); 
 
 export async function getUsers(req, res) {
   try {
@@ -54,7 +58,7 @@ export async function createUser(req, res) {
     `
     const values = [email, username, hashedPassword];
     const result = await sql.query(query, values);
-    console.log(result[0]);
+    // console.log(result[0]);
     res.status(201).json(result[0]);
   } catch (err) {
     console.log("Error creating user: ", err.message);
@@ -62,5 +66,48 @@ export async function createUser(req, res) {
       res.status(400).json({ error: "Email already in use" });
     }
     else res.status(500).json({ error: `Failed to create user: ${err.message}` });
+  }
+}
+
+export async function loginUser(req, res) {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password required" });
+    }
+    const query = `
+      SELECT id, username, email, password
+      FROM users
+      WHERE email = $1
+    `
+    const values = [email];
+    const result = await sql.query(query, values);
+    if (result.length === 0) {
+      console.log("Invalid email");
+      return res.status(400).json({ error: "Invalid email or password" }); //invalid email
+    }
+    const user = result[0];
+    // console.log(user)
+    if (!await bcrypt.compare(password, user.password)) {
+      console.log("Invalid password");
+      return res.status(400).json({ error: "Invalid email or password" }); //invalid password
+    }
+
+    //jwt token
+    const token = jwt.sign(
+      { id: user.id, username: user.username },
+      process.env.JWT_SECRET,
+      { expiresIn: "30d" }
+    );
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // if true, needs to be https. Set to false for local testing (http)
+      sameSite: "strict",
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    });
+    res.json({ message: "Login successful", id: user.id, username: user.username, email: user.email });
+  } catch (err) {
+    console.log("Error logging in user: ", err.message);
   }
 }
