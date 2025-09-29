@@ -3,12 +3,7 @@ import Box from "@mui/material/Box";
 import RegisterPane from "./RegisterPane";
 import LoginPane from "./LoginPane";
 import { createUser, loginUser } from "../../services/userServices";
-
-interface User {
-  id: number;
-  username: string;
-  email: string;
-}
+import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -17,6 +12,7 @@ const LoginPage = () => {
   const [registerAccount, setRegisterAccount] = useState(false);
   const [username, setUsername] = useState(""); //used for registering
   const [user, setUser] = useState<User | null>(null); //for logging in
+  const navigate = useNavigate();
 
   useEffect(() => {
     console.log(email, password);
@@ -26,13 +22,15 @@ const LoginPage = () => {
     e.preventDefault();
     console.log("Logging in with:", { email, password });
     loginUser(email, password)
-      .then((res:any) => {
-        const { id, username, email } = res
-        setUser({ id, username, email });
+      .then((res: any) => {
+        const { id, username, email } = res;
+
+        setUser({ userID: id, userName: username, email: email });
+        navigate("/home");
         console.log("User logged in:", res);
         alert("Login successful!");
       })
-      .catch((err:any) => {
+      .catch((err: any) => {
         alert(`Login failed. ${err.error}`);
       });
   };
@@ -43,54 +41,53 @@ const LoginPage = () => {
       alert("Passwords do not match!");
       return;
     }
-    console.log("Registering with:", { username, email, password });  
+    console.log("Registering with:", { username, email, password });
     createUser(email, username, password)
-      .then((res:any) => {
+      .then((res: any) => {
         console.log("User registered:", res);
         alert("Registration successful! Please log in.");
         setRegisterAccount(false); // Switch to login pane after successful registration
       })
-      .catch((err:any) => {
+      .catch((err: any) => {
         console.log("Registration failed:", err);
         alert(`Registration failed. ${err.error}`);
       });
-
   };
 
   return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "calc(100vh - 64px)",
-          padding: 2,
-        }}
-      >
-        {registerAccount ? (
-          <RegisterPane
-            email={email}
-            setEmail={setEmail}
-            username={username}
-            setUsername={setUsername}
-            password={password}
-            setPassword={setPassword}
-            confirmPassword={confirmPassword}
-            setConfirmPassword={setConfirmPassword}
-            onSubmit={handleRegister}
-            onSwitchToLogin={() => setRegisterAccount(false)}
-          />
-        ) : (
-          <LoginPane
-            email={email}
-            setEmail={setEmail}
-            password={password}
-            setPassword={setPassword}
-            onSubmit={handleLogin}
-            onSwitchToRegister={() => setRegisterAccount(true)}
-          />
-        )}
-      </Box>
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "calc(100vh - 64px)",
+        padding: 2,
+      }}
+    >
+      {registerAccount ? (
+        <RegisterPane
+          email={email}
+          setEmail={setEmail}
+          username={username}
+          setUsername={setUsername}
+          password={password}
+          setPassword={setPassword}
+          confirmPassword={confirmPassword}
+          setConfirmPassword={setConfirmPassword}
+          onSubmit={handleRegister}
+          onSwitchToLogin={() => setRegisterAccount(false)}
+        />
+      ) : (
+        <LoginPane
+          email={email}
+          setEmail={setEmail}
+          password={password}
+          setPassword={setPassword}
+          onSubmit={handleLogin}
+          onSwitchToRegister={() => setRegisterAccount(true)}
+        />
+      )}
+    </Box>
   );
 };
 

@@ -11,12 +11,12 @@ import Divider from "@mui/material/Divider";
 
 interface NavbarProps {
   loggedIn: boolean;
-  // setLoggedIn: () => void;
+  logOut: () => void;
 }
 
 const navItems = [ "Friends", "Events", "Groups", "Schedule"];
 
-const Navbar = ({ loggedIn }: NavbarProps) => {
+const Navbar = ({ loggedIn, logOut }: NavbarProps) => {
   const navigate = useNavigate();
   const handleNavItemClick = (item: string) => {
     navigate("/" + item.toLowerCase());
@@ -45,18 +45,22 @@ const Navbar = ({ loggedIn }: NavbarProps) => {
             Bing Bong
           </Typography>
           {loggedIn ? (
-            navItems.map((item) => (
-              <Button
-                key={item}
-                onClick={() => handleNavItemClick(item)}
-                sx={{ textDecoration: "none", color: "inherit" }}
-              >
-                {item}
+            <>
+              {navItems.map((item) => (
+                <Button
+                  key={item}
+                  onClick={() => handleNavItemClick(item)}
+                  sx={{ textDecoration: "none", color: "inherit" }}
+                >
+                  {item}
+                </Button>
+              ))}
+              <Button color="inherit" onClick={() => logOut()}>
+                Log Out
               </Button>
-            ))
+            </>
           ) : (
             <>
-              {" "}
               <Divider />
               <Button color="inherit" onClick={() => handleNavItemClick("login")}>
                 Login
