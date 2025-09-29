@@ -16,18 +16,18 @@ const HomePage = () => {
   const [message, setMessage] = useState("");
   const [allUsers, setAllUsers] = useState<AllUsers[] | []>([]);
   const [user, setUser] = useState<User | null>(null);
-  
+
   // returns username, email, and id if user is logged in
-  useEffect(() => {
-    checkLogin()
-      .then((res) => {
-        if (res) {
-          setUser(res);
-        } else {
-          console.log("User not logged in");
-        }
-      });
-  }, []);
+  // useEffect(() => {
+  //   checkLogin()
+  //     .then((res) => {
+  //       if (res) {
+  //         setUser(res);
+  //       } else {
+  //         console.log("User not logged in");
+  //       }
+  //     });
+  // }, []);
 
   //test function: Get all usernames
   useEffect(() => {

@@ -12,6 +12,7 @@ import GroupEventsPage from "./Pages/GroupEventsPage";
 import GroupScheduleEventPage from "./Pages/GroupScheduleEventPage";
 import SchedulePage from "./Pages/SchedulePage";
 import EventPage from "./Pages/EventPage";
+import ProtectedRoute from "./ProtectedRoute";
 //import { useParams } from 'react-router-dom';
 // import { testUser } from "./services/userServices";
 
@@ -25,19 +26,21 @@ function App() {
             <Route index element={<HomePage />} />
             <Route path="login" element={<LoginPage />} />
             <Route path="*" element={<div>404 Not Found</div>} />
-            <Route path="friends" element={<FriendsPage />} />
-            <Route path="friends/:friendId" element={<FriendsPage />} />
-            <Route path="groups" element={<ListOfGroupsPage />} />
-            <Route path="events" element={<EventPage />} />
-            <Route path="schedule" element={<SchedulePage />} />
-            <Route path="group/:groupId">
-              <Route index element={<GroupPage />} />
-              <Route path="settings" element={<GroupSettingsPage />} />
-              <Route path="events" element={<GroupEventsPage />} />
-              <Route
-                path="schedule-event"
-                element={<GroupScheduleEventPage />}
-              />
+            <Route element={<ProtectedRoute/>}>
+              <Route path="friends" element={<FriendsPage />} />
+              <Route path="friends/:friendId" element={<FriendsPage />} />
+              <Route path="groups" element={<ListOfGroupsPage />} />
+              <Route path="events" element={<EventPage />} />
+              <Route path="schedule" element={<SchedulePage />} />
+              <Route path="group/:groupId">
+                <Route index element={<GroupPage />} />
+                <Route path="settings" element={<GroupSettingsPage />} />
+                <Route path="events" element={<GroupEventsPage />} />
+                <Route
+                  path="schedule-event"
+                  element={<GroupScheduleEventPage />}
+                />
+              </Route>
             </Route>
           </Route>
           <Route path="*" element={<div>404 Not Found</div>} />

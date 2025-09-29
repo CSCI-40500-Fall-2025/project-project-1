@@ -1,24 +1,20 @@
-const API_URL = "http://localhost:3000/api"
+import type { User } from "../const";
+const API_URL = "http://localhost:3000/api";
 
-export async function createUser(email: string, username: string, password: string) {
-    const user = {
-        email: email,
-        username: username,
-        password: password
-    };
-
+export async function createUser(email: string, username: string, password: string): Promise<User> {
     const res = await fetch(`${API_URL}/user`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(user),
+        body: JSON.stringify({ email, username, password }),
+        credentials: "include"
     });
 
     const data = await res.json();
     if (!res.ok) {
-        throw data //new Error(data);
+        throw new Error(data?.message || "Failed to create user");
     }
 
-    return data
+    return data as User;
 }
 
 export async function loginUser(email: string, password: string) {
