@@ -23,7 +23,7 @@ const Navbar = ({ loggedIn, logOut }: NavbarProps) => {
   };
 
   return (
-    <Box sx={{ flexGrow: 1, borderRadius: 1, overflow: "hidden" }}>
+    <Box sx={{ borderRadius: 1, overflow: "hidden" }}>
       <AppBar position="static">
         <Toolbar>
           <IconButton
