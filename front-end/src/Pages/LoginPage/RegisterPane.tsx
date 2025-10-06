@@ -52,13 +52,23 @@ const RegisterPane = ({ onSwitchToLogin }: RegisterPaneProps) => {
 
     //check if username is taken -- to be implemented
     //check if email is taken -- to be implemented
-    if (!username || username.length < 3) {
+    if (!username) {
+      setUsernameError(true);
+      setUsernameErrorMessage("Username is required.");
+      isValid = false;
+    }
+    else if (username.length < 3) {
       setUsernameError(true);
       setUsernameErrorMessage("Username must be at least 3 characters long.");
       isValid = false;
     }
 
-    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+    if (!email) {
+      setEmailError(true);
+      setEmailErrorMessage("Email is required.");
+      isValid = false;
+    }
+    else if (!/\S+@\S+\.\S+/.test(email)) {
       setEmailError(true);
       setEmailErrorMessage("Please enter a valid email address.");
       isValid = false;
@@ -159,7 +169,7 @@ const RegisterPane = ({ onSwitchToLogin }: RegisterPaneProps) => {
             fullWidth
             required
             value={confirmPassword}
-            color={passwordError ? "error" : "primary"}
+            color={confirmPasswordError ? "error" : "primary"}
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
         </FormControl>
