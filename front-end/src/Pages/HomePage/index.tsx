@@ -1,6 +1,4 @@
 import Box from "@mui/material/Box";
-// import React from "react";
-//import { getUser, logoutUser, checkLogin } from "../../services/userServices";
 import { useAuth } from "../../AuthContext";
 
 const HomePage = () => {
