@@ -3,7 +3,7 @@ import { useAuth } from "../../AuthContext";
 
 const HomePage = () => {
   const { user: authUser } = useAuth();
-  const userName = authUser ? authUser.userName : "Guest";
+  const userName = authUser ? authUser.username : "Guest";
 
   // returns username, email, and id if user is logged in
   // useEffect(() => {

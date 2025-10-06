@@ -37,7 +37,7 @@ const RegisterPane = ({ onSwitchToLogin }: RegisterPaneProps) => {
     console.log("Registering with:", { username, email, password });
     try {
       createUser(email, username, password);
-      console.log("User registered:", res);
+      console.log("User registered:");
       alert("Registration successful! Please log in.");
     } catch (err: any) {
       console.log("Registration failed:", err);
