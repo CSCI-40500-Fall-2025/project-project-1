@@ -4,4 +4,4 @@ export type User = {
     email: string;
 }
 
-export const APP_NAME = "Bing Bong"
+export const APP_NAME = "Socialite"
