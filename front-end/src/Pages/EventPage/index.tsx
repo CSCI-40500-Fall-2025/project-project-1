@@ -1,4 +1,5 @@
 import Box from "@mui/material/Box";
+import ReactBigCalendar from "../../components/Calendar";
 
 const EventPage = () => {
 
@@ -13,6 +14,7 @@ const EventPage = () => {
         }}
       >
           <div>EventPage</div>
+          <ReactBigCalendar />
       </Box>
 
   );

@@ -1,21 +1,9 @@
 import Box from "@mui/material/Box";
-// import React from "react";
-import { useState, useEffect } from "react";
-import { getUser, logoutUser, checkLogin } from "../../services/userServices";
+import { useAuth } from "../../AuthContext";
 
-interface AllUsers {
-  username: string;
-}
-
-interface User {
-  id: string;
-  username: string;
-  email: string;
-}
 const HomePage = () => {
-  const [message, setMessage] = useState("");
-  const [allUsers, setAllUsers] = useState<AllUsers[] | []>([]);
-  const [user, setUser] = useState<User | null>(null);
+  const { user: authUser } = useAuth();
+  const userName = authUser ? authUser.userName : "Guest";
 
   // returns username, email, and id if user is logged in
   // useEffect(() => {
@@ -30,45 +18,45 @@ const HomePage = () => {
   // }, []);
 
   //test function: Get all usernames
-  useEffect(() => {
-    if (!user) return;
-    getUser()
-      .then((res) => {
-        console.log("users response:", res);
-        setAllUsers(res)
-      })
-      .catch(() => setAllUsers([]));
-  }, [user]);
+  // useEffect(() => {
+  //   if (!user) return;
+  //   getUser()
+  //     .then((res) => {
+  //       console.log("users response:", res);
+  //       setAllUsers(res)
+  //     })
+  //     .catch(() => setAllUsers([]));
+  // }, [user]);
 
-  const handleLogout = () => {
-    logoutUser()
-    .then((res) => {
-      console.log("logout response: ", res);
-    })
-    .catch(() => console.log("error logging out"))
-  }
+  // const handleLogout = () => {
+  //   logoutUser()
+  //   .then((res) => {
+  //     console.log("logout response: ", res);
+  //   })
+  //   .catch(() => console.log("error logging out"))
+  // }
   return (
     <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "calc(100vh - 64px)",
-          padding: 2,
-          flexDirection: "column",
-        }}
-      >
-          <div>BING BONG {message}</div>
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "calc(100vh - 64px)",
+        padding: 2,
+        flexDirection: "column",
+      }}
+    >
+      <div>Welcome, {userName}!</div>
+
+      {/* <div>BING BONG {message}</div>
           {user? `Currently logged in as: ${user.username}, ${user.email}` : "Not logged in"}
           <div>Users: </div>
           <div>
             {allUsers ? allUsers.map((user, i) => (
               <div key={i}>{user.username}</div>
             )) : ""}
-          </div>
-          <button onClick={handleLogout}>Logout</button>
-      </Box>
-
+          </div> */}
+    </Box>
   );
 };
 

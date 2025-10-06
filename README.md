@@ -26,6 +26,11 @@ App runs at:  [http://localhost:5173](http://localhost:5173)
 ## Backend
 ```bash
 	cd back-end
+
+	# Install dependencies:
+	npm install
+
+
 	node server.js
 ```
 

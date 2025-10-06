@@ -13,20 +13,18 @@ import GroupScheduleEventPage from "./Pages/GroupScheduleEventPage";
 import SchedulePage from "./Pages/SchedulePage";
 import EventPage from "./Pages/EventPage";
 import ProtectedRoute from "./ProtectedRoute";
-//import { useParams } from 'react-router-dom';
-// import { testUser } from "./services/userServices";
+
 
 function App() {
-
   return (
     <>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>
-            <Route index element={<HomePage />} />
             <Route path="login" element={<LoginPage />} />
             <Route path="*" element={<div>404 Not Found</div>} />
-            <Route element={<ProtectedRoute/>}>
+            <Route element={<ProtectedRoute />}>
+              <Route path ="home" element={<HomePage />} />
               <Route path="friends" element={<FriendsPage />} />
               <Route path="friends/:friendId" element={<FriendsPage />} />
               <Route path="groups" element={<ListOfGroupsPage />} />
