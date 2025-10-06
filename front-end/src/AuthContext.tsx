@@ -17,7 +17,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function fetchUser() {
       const data = await checkLogin();
-      setUser(data?.user || null);
+      // setUser(data?.user || null);
+      setUser(data || null);
       setLoading(false);
     }
     fetchUser();
