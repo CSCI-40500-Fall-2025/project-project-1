@@ -24,7 +24,7 @@ const Navbar = ({ loggedIn, logOut }: NavbarProps) => {
 
   return (
     <Box sx={{ borderRadius: 1, overflow: "hidden" }}>
-      <AppBar position="static">
+      <AppBar position="fixed">
         <Toolbar>
           <IconButton
             size="large"
