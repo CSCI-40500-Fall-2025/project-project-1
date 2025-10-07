@@ -15,6 +15,7 @@ const Layout = () => {
   const { user, logout } = useAuth();
   const loggedIn = user !== null;
   let content;
+
   if (isRootPath) {
     content = user ? <Navigate to="/home" replace /> : <WelcomePage />;
   } else {
