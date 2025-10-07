@@ -8,6 +8,7 @@ import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useNavigate } from "react-router-dom";
 import Divider from "@mui/material/Divider";
+import { APP_NAME } from "../const";
 
 interface NavbarProps {
   loggedIn: boolean;
@@ -42,7 +43,7 @@ const Navbar = ({ loggedIn, logOut }: NavbarProps) => {
             onClick={() => handleNavItemClick("")}
             flexGrow={1}
           >
-            Bing Bong
+            {APP_NAME}
           </Typography>
           {loggedIn ? (
             <>
