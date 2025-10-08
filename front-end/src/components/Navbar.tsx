@@ -15,7 +15,7 @@ interface NavbarProps {
   logOut: () => void;
 }
 
-const navItems = [ "Friends", "Events", "Groups", "Schedule"];
+const navItems = ["Friends", "Events", "Groups", "Schedule"];
 
 const Navbar = ({ loggedIn, logOut }: NavbarProps) => {
   const navigate = useNavigate();
@@ -24,7 +24,7 @@ const Navbar = ({ loggedIn, logOut }: NavbarProps) => {
   };
 
   return (
-    <Box sx={{ borderRadius: 1, overflow: "hidden" }}>
+    <Box sx={{ borderRadius: 1, }}>
       <AppBar position="fixed">
         <Toolbar>
           <IconButton
@@ -39,7 +39,13 @@ const Navbar = ({ loggedIn, logOut }: NavbarProps) => {
           <Typography
             variant="h6"
             component="div"
-            sx={{ textDecoration: "none", color: "inherit" }}
+            sx={{
+              textDecoration: "none",
+              color: "inherit",
+              "&:hover": {
+                cursor: "pointer",
+              },
+            }}
             onClick={() => handleNavItemClick("")}
             flexGrow={1}
           >
@@ -51,7 +57,6 @@ const Navbar = ({ loggedIn, logOut }: NavbarProps) => {
                 <Button
                   key={item}
                   onClick={() => handleNavItemClick(item)}
-                  sx={{ textDecoration: "none", color: "inherit" }}
                 >
                   {item}
                 </Button>
@@ -63,7 +68,10 @@ const Navbar = ({ loggedIn, logOut }: NavbarProps) => {
           ) : (
             <>
               <Divider />
-              <Button color="inherit" onClick={() => handleNavItemClick("login")}>
+              <Button
+                color="inherit"
+                onClick={() => handleNavItemClick("login")}
+              >
                 Login
               </Button>
             </>
