@@ -17,6 +17,7 @@ interface MyEvent {
 export default function ReactBigCalendar() {
   const [eventsData, setEventsData] = useState<MyEvent[]>([]);
   const [currentView, setCurrentView] = useState<View>("month");
+  const [date, setDate] = useState(new Date());
 
   const handleSelect = ({ start, end }: SlotInfo) => {
     console.log(start);
@@ -35,7 +36,7 @@ export default function ReactBigCalendar() {
   };
 
   return (
-    <div className="App">
+    <div className="calendar">
       <style>
       </style>
       <Calendar<MyEvent>
@@ -44,11 +45,12 @@ export default function ReactBigCalendar() {
         onView={(view) => setCurrentView(view)}
         selectable
         localizer={localizer}
-        defaultDate={new Date()}
+        date={date}
+        onNavigate={setDate}
         events={eventsData}
         style={{ 
             height: "80vh",
-            padding: "20px 30px 20px 30px"
+            padding: "20px 0"
         }}
         onSelectEvent={(event: MyEvent) => alert(event.title)}
         onSelectSlot={handleSelect}

@@ -5,3 +5,32 @@
 .rbc-day-bg {
     background-color: transparent !important;
 }
+
+.rbc-btn {
+    color: white !important;
+} 
+
+.rbc-calendar {
+    width: 80% !important;
+}
+
+.calendar {
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rbc-toolbar button {
+    color: white !important;
+}
+
+.rbc-toolbar button:active,
+.rbc-toolbar button:hover,
+.rbc-toolbar button.rbc-active {
+    background-color: #f0f0f0 !important;
+    color: #342f92 !important;
+    border-color: #342f92 !important;
+}

@@ -13,7 +13,6 @@ const EventPage = () => {
           padding: 2,
         }}
       >
-          <div>EventPage</div>
           <ReactBigCalendar />
       </Box>
 
