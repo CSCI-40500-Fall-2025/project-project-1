@@ -44,7 +44,7 @@ export const useFormData = () => {
   const loggedIn = useFormStore((state) => state.loggedIn);
   const email = useFormStore((state) => state.user?.email || "");
   const accountNumber = useFormStore((state) => state.user?.userID || 0);
-  const userName = useFormStore((state) => state.user?.userName || "");
+  const userName = useFormStore((state) => state.user?.username || "");
   const password = useFormStore((state) => state.password);
   const friendGroups = useFormStore((state) => state.friendGroups);
 
