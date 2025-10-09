@@ -9,7 +9,8 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
-  origin: "http://localhost:5173", // frontend URL, set to actual url in production
+  origin: ["http://localhost:5173", // frontend URL, set to actual url in production
+          "https://bing-bong-77845.web.app"],
   credentials: true,
 }));
 app.use(express.json()); // parse JSON request body
