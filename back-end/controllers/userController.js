@@ -63,8 +63,11 @@ export async function createUser(req, res) {
     res.status(201).json(result[0]);
   } catch (err) {
     console.log("Error creating user: ", err.message);
-    if (err.code === '23505') { // duplicate key value violates unique constraint "users_email_key"
+    if (err.constraint === 'users_email_key') { // duplicate key value violates unique constraint "users_email_key"
       res.status(400).json({ error: "Email already in use" });
+    }
+    else if (err.constraint === 'users_username_key') { // duplicate key value violates unique constraint "users_username_key"
+      res.status(400).json({ error: "Username already in use" });
     }
     else res.status(500).json({ error: `Failed to create user: ${err.message}` });
   }
