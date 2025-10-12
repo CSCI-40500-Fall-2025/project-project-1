@@ -6,30 +6,70 @@ type AuthContextType = {
   user: User | null;
   loading: boolean;
   logout: () => void;
+  refreshUser?: () => Promise<void>;
 };
 
-const AuthContext = createContext<AuthContextType>({ user: null, loading: true, logout: () => {} });
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  loading: true,
+  logout: () => { },
+  refreshUser: async () => { }
+});
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchUser() {
+  const fetchUser = async () => {
+    setLoading(true);
+    try {
       const data = await checkLogin();
-      // setUser(data?.user || null);
-      setUser(data || null);
+      if (data?.username && data?.email && data?.id) {
+        const newUser = {
+          username: data.username,
+          email: data.email,
+          userID: data.id,
+        };
+        setUser(newUser);
+      } else {
+        setUser(null); // invalid or missing data
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error("Failed to fetch user:", err.message);
+      } else {
+        console.error("Failed to fetch user:", err);
+        setUser(null);
+      }
+    } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
     fetchUser();
   }, []);
 
   const logout = async () => {
-    await logoutUser();
-    setUser(null);
+    try {
+      await logoutUser();
+      setUser(null);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error("Logout failed:", err.message);
+      } else {
+        console.error("Logout failed:", err);
+      }
+    }
   };
 
-  return <AuthContext.Provider value={{ user, loading, logout }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{ user, loading, logout, refreshUser: fetchUser }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export const useAuth = () => useContext(AuthContext);

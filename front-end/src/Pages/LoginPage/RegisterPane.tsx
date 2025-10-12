@@ -20,28 +20,32 @@ const RegisterPane = ({ onSwitchToLogin }: RegisterPaneProps) => {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
-  const [emailError, setEmailError] = React.useState(false);
-  const [emailErrorMessage, setEmailErrorMessage] = React.useState("");
-  const [passwordError, setPasswordError] = React.useState(false);
-  const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
-  const [usernameError, setUsernameError] = React.useState(false);
-  const [usernameErrorMessage, setUsernameErrorMessage] = React.useState("");
-  const [confirmPasswordError, setConfirmPasswordError] = React.useState(false);
-  const [confirmPasswordErrorMessage, setConfirmPasswordErrorMessage] =
-    React.useState("");
+  const [emailError, setEmailError] = React.useState("");
+  const [passwordError, setPasswordError] = React.useState("");
+  const [usernameError, setUsernameError] = React.useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = React.useState("");
+  const [registrationError, setRegistrationError] = React.useState("");
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateInputs()) return;
     setLoading(true);
     console.log("Registering with:", { username, email, password });
     try {
-      createUser(email, username, password);
-      console.log("User registered:");
+      const newUser = await createUser(email, username, password);
+      console.log("User registered:", newUser);
       alert("Registration successful! Please log in.");
-    } catch (err: any) {
-      console.log("Registration failed:", err);
-      alert(`Registration failed. ${err.error}`);
+      setRegistrationError("");
+      setUsername("");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setRegistrationError(err?.message);
+      } else {
+        setRegistrationError("Unknown registration error");
+      }
     } finally {
       setLoading(false);
     }
@@ -53,46 +57,35 @@ const RegisterPane = ({ onSwitchToLogin }: RegisterPaneProps) => {
     //check if username is taken -- to be implemented
     //check if email is taken -- to be implemented
     if (!username) {
-      setUsernameError(true);
-      setUsernameErrorMessage("Username is required.");
+      setUsernameError("Username is required.");
       isValid = false;
-    }
-    else if (username.length < 3) {
-      setUsernameError(true);
-      setUsernameErrorMessage("Username must be at least 3 characters long.");
+    } else if (username.length < 3) {
+      setUsernameError("Username must be at least 3 characters long.");
       isValid = false;
     }
 
     if (!email) {
-      setEmailError(true);
-      setEmailErrorMessage("Email is required.");
+      setEmailError("Email is required.");
       isValid = false;
-    }
-    else if (!/\S+@\S+\.\S+/.test(email)) {
-      setEmailError(true);
-      setEmailErrorMessage("Please enter a valid email address.");
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      setEmailError("Please enter a valid email address.");
       isValid = false;
     } else {
-      setEmailError(false);
-      setEmailErrorMessage("");
+      setEmailError("");
     }
 
     if (!password || password.length < 6) {
-      setPasswordError(true);
-      setPasswordErrorMessage("Password must be at least 6 characters long.");
+      setPasswordError("Password must be at least 6 characters long.");
       isValid = false;
     } else {
-      setPasswordError(false);
-      setPasswordErrorMessage("");
+      setPasswordError("");
     }
 
     if (confirmPassword !== password) {
-      setConfirmPasswordError(true);
-      setConfirmPasswordErrorMessage("Passwords do not match.");
+      setConfirmPasswordError("Passwords do not match.");
       isValid = false;
     } else {
-      setConfirmPasswordError(false);
-      setConfirmPasswordErrorMessage("");
+      setConfirmPasswordError("");
     }
 
     return isValid;
@@ -113,8 +106,8 @@ const RegisterPane = ({ onSwitchToLogin }: RegisterPaneProps) => {
       >
         <FormControl>
           <TextField
-            error={usernameError}
-            helperText={usernameErrorMessage}
+            error={!!usernameError}
+            helperText={usernameError}
             label="Username"
             type="text"
             placeholder="username"
@@ -124,13 +117,16 @@ const RegisterPane = ({ onSwitchToLogin }: RegisterPaneProps) => {
             autoFocus
             color={usernameError ? "error" : "primary"}
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={(e) => {
+              setUsername(e.target.value);
+              setRegistrationError("");
+            }}
           />
         </FormControl>
         <FormControl>
           <TextField
-            error={emailError}
-            helperText={emailErrorMessage}
+            error={!!emailError}
+            helperText={emailError}
             label="Email"
             type="email"
             placeholder="your@email.com"
@@ -140,13 +136,16 @@ const RegisterPane = ({ onSwitchToLogin }: RegisterPaneProps) => {
             variant="outlined"
             color={emailError ? "error" : "primary"}
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setRegistrationError("");
+            }}
           />
         </FormControl>
         <FormControl>
           <TextField
-            error={passwordError}
-            helperText={passwordErrorMessage}
+            error={!!passwordError}
+            helperText={passwordError}
             label="Password"
             type="password"
             variant="outlined"
@@ -160,8 +159,8 @@ const RegisterPane = ({ onSwitchToLogin }: RegisterPaneProps) => {
         </FormControl>
         <FormControl>
           <TextField
-            error={confirmPasswordError}
-            helperText={confirmPasswordErrorMessage}
+            error={!!confirmPasswordError}
+            helperText={confirmPasswordError}
             label="Confirm Password"
             type="password"
             variant="outlined"
@@ -174,6 +173,11 @@ const RegisterPane = ({ onSwitchToLogin }: RegisterPaneProps) => {
           />
         </FormControl>
 
+        {registrationError && (
+          <Typography color="error" variant="body2" textAlign="center">
+            {registrationError}
+          </Typography>
+        )}
         <Button
           variant="contained"
           color="primary"

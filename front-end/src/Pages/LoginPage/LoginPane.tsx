@@ -11,6 +11,7 @@ import {
 import { APP_NAME } from "../../const";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../../services/userServices";
+import { useAuth } from "../../AuthContext";
 
 interface LoginPaneProps {
   onSwitchToRegister: () => void;
@@ -19,10 +20,10 @@ const LoginPane = ({ onSwitchToRegister }: LoginPaneProps) => {
   const [loading, setLoading] = React.useState(false);
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
-  const [emailError, setEmailError] = React.useState(false);
   const [emailErrorMessage, setEmailErrorMessage] = React.useState("");
-  const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
+  const [loginError, setLoginError] = React.useState("");
+  const { refreshUser } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -32,11 +33,15 @@ const LoginPane = ({ onSwitchToRegister }: LoginPaneProps) => {
     console.log("Logging in with:", { email, password });
     try {
       const res = await loginUser(email, password);
+      if (refreshUser) await refreshUser();
       navigate("/home");
       console.log("User logged in:", res);
-      alert("Login successful!");
-    } catch (err: any) {
-      alert(`Login failed. ${err.error}`);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setLoginError(err?.message);
+      } else {
+        setLoginError("Unknown login error");
+      }
     } finally {
       setLoading(false);
     }
@@ -46,20 +51,16 @@ const LoginPane = ({ onSwitchToRegister }: LoginPaneProps) => {
     let isValid = true;
 
     if (!email || !/\S+@\S+\.\S+/.test(email)) {
-      setEmailError(true);
       setEmailErrorMessage("Please enter a valid email address.");
       isValid = false;
     } else {
-      setEmailError(false);
       setEmailErrorMessage("");
     }
 
-    if (!password || password.length < 6) {
-      setPasswordError(true);
-      setPasswordErrorMessage("Password must be at least 6 characters long.");
+    if (!password) {
+      setPasswordErrorMessage("Password is required.");
       isValid = false;
     } else {
-      setPasswordError(false);
       setPasswordErrorMessage("");
     }
 
@@ -96,7 +97,7 @@ const LoginPane = ({ onSwitchToRegister }: LoginPaneProps) => {
       >
         <FormControl>
           <TextField
-            error={emailError}
+            error={!!emailErrorMessage}
             helperText={emailErrorMessage}
             label="Email"
             type="email"
@@ -106,15 +107,15 @@ const LoginPane = ({ onSwitchToRegister }: LoginPaneProps) => {
             required
             fullWidth
             variant="outlined"
-            color={emailError ? "error" : "primary"}
+            color={emailErrorMessage ? "error" : "primary"}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
         </FormControl>
         <FormControl>
           <TextField
-            error={passwordError}
-            helperText={passwordErrorMessage}
+            error={!!passwordErrorMessage}
+            helperText={passwordErrorMessage }
             label="Password"
             type="password"
             variant="outlined"
@@ -122,10 +123,15 @@ const LoginPane = ({ onSwitchToRegister }: LoginPaneProps) => {
             fullWidth
             required
             value={password}
-            color={passwordError ? "error" : "primary"}
+            color={passwordErrorMessage ? "error" : "primary"}
             onChange={(e) => setPassword(e.target.value)}
           />
         </FormControl>
+        {loginError && (
+          <Typography color="error" variant="body2" textAlign="center">
+            {loginError}
+          </Typography>
+        )}
         <Button
           variant="contained"
           color="primary"
@@ -142,7 +148,12 @@ const LoginPane = ({ onSwitchToRegister }: LoginPaneProps) => {
             gap: 2,
           }}
         >
-          <Link component="button" type="button" variant="body2" underline="hover">
+          <Link
+            component="button"
+            type="button"
+            variant="body2"
+            underline="hover"
+          >
             Forgot password?
           </Link>
           <Box
