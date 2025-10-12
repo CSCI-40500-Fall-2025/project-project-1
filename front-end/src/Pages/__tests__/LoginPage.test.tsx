@@ -72,7 +72,7 @@ describe("LoginPage", () => {
         await screen.findByText(/Please enter a valid email address/i)
       ).toBeInTheDocument();
       expect(
-        await screen.findByText(/Password must be at least 6 characters long/i)
+        await screen.findByText(/Password is required/i)
       ).toBeInTheDocument();
     });
 
@@ -95,9 +95,9 @@ describe("LoginPage", () => {
       });
     });
   });
-   describe("RegisterPane", () => {
+  describe("RegisterPane", () => {
     test("shows validation errors when fields empty", async () => {
-      render(<RegisterPane onSwitchToLogin={() => {}}/>);
+      render(<RegisterPane onSwitchToLogin={() => {}} />);
       await userEvent.click(screen.getByRole("button", { name: /Register/i }));
       expect(
         await screen.findByText(/Username is required./i)
@@ -105,26 +105,34 @@ describe("LoginPage", () => {
       expect(
         await screen.findByText(/Email is required./i)
       ).toBeInTheDocument();
-      expect( await screen.findByText(/Password must be at least 6 characters long/i)).toBeInTheDocument();
-   });
-   test("show validation error when username is less than 3 characters", async () => {
-    render(<RegisterPane onSwitchToLogin={() => {}}/>);
-    await userEvent.type(screen.getByRole("textbox", { name: "Username" }), "ab");
-    await userEvent.click(screen.getByRole("button", { name: /Register/i }));
-    expect(
-      await screen.findByText(/Username must be at least 3 characters long./i)
-    ).toBeInTheDocument();
-   });
-   test("show validation error when email is invalid", async () => {
-    render(<RegisterPane onSwitchToLogin={() => {}}/>);
-    await userEvent.type(screen.getByRole("textbox", { name: "Email" }), "invalid-email");
-    await userEvent.click(screen.getByRole("button", { name: /Register/i }));
-    expect(
-      await screen.findByText(/Please enter a valid email address./i)
-    ).toBeInTheDocument();
-   });
+      expect(
+        await screen.findByText(/Password must be at least 6 characters long/i)
+      ).toBeInTheDocument();
+    });
+    test("show validation error when username is less than 3 characters", async () => {
+      render(<RegisterPane onSwitchToLogin={() => {}} />);
+      await userEvent.type(
+        screen.getByRole("textbox", { name: "Username" }),
+        "ab"
+      );
+      await userEvent.click(screen.getByRole("button", { name: /Register/i }));
+      expect(
+        await screen.findByText(/Username must be at least 3 characters long./i)
+      ).toBeInTheDocument();
+    });
+    test("show validation error when email is invalid", async () => {
+      render(<RegisterPane onSwitchToLogin={() => {}} />);
+      await userEvent.type(
+        screen.getByRole("textbox", { name: "Email" }),
+        "invalid-email"
+      );
+      await userEvent.click(screen.getByRole("button", { name: /Register/i }));
+      expect(
+        await screen.findByText(/Please enter a valid email address./i)
+      ).toBeInTheDocument();
+    });
     test("show validation error when passwords do not match", async () => {
-      render(<RegisterPane onSwitchToLogin={() => {}}/>);
+      render(<RegisterPane onSwitchToLogin={() => {}} />);
       const passwordFields = screen.getAllByLabelText(/Password/i);
       expect(passwordFields.length).toBe(2); // Password and Confirm Password
       expect(passwordFields[0]).toBeInTheDocument();
@@ -135,6 +143,6 @@ describe("LoginPage", () => {
       expect(
         await screen.findByText(/Passwords do not match./i)
       ).toBeInTheDocument();
-    })
+    });
   });
-})
+});

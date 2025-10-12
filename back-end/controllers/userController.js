@@ -28,7 +28,7 @@ import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 
-dotenv.config(); 
+dotenv.config();
 
 //test fuction: get all usernames
 export async function getUsers(req, res) {
