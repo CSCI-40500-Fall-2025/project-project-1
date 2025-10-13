@@ -1,7 +1,8 @@
-import { Box, Typography } from "@mui/material";
+import { Box, Typography} from "@mui/material";
 import { APP_NAME } from "../../const";
 import Footer from "../../components/Footer";
 import Typewriter from "typewriter-effect";
+import Gallery from "./gallery";
 
 const WelcomePage = () => {
   return (
@@ -16,7 +17,7 @@ const WelcomePage = () => {
           height: "100vh",
           display: "flex",
           flexDirection: "column",
-          textAlign: 'center',
+          textAlign: "center",
           justifyContent: "center",
         }}
       >
@@ -25,26 +26,25 @@ const WelcomePage = () => {
         </Typography>
         <Typography variant="h5">
           <Typewriter
-          options={{
-            strings: [
-              "Simple event scheduling w/ besties~",
-              "Never miss out on hangouts.",
-              "Touch grass, collaboratively.", 
-              "Bing Bong!..."
-            ],
-            autoStart: true,
-            loop: true,
-            delay: 75,
-            deleteSpeed: 50,
-          }}
-        />
+            options={{
+              strings: [
+                "Simple event scheduling w/ besties~",
+                "Never miss out on hangouts.",
+                "Touch grass, collaboratively.",
+                "Bing Bong!...",
+              ],
+              autoStart: true,
+              loop: true,
+              delay: 75,
+              deleteSpeed: 50,
+            }}
+          />
         </Typography>
-        
       </Box>
 
       <Box
         sx={{
-          height: "100vh",
+          height: "auto",
           width: "100vw",
           display: "flex",
           flexDirection: "column",
@@ -53,7 +53,7 @@ const WelcomePage = () => {
           alignItems: "center",
         }}
       >
-        <Typography>Need a good background pic here or smth</Typography>
+       <Gallery/>
       </Box>
       <Footer />
     </Box>
