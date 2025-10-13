@@ -1,4 +1,4 @@
-import { Box, Typography, Divider } from "@mui/material";
+import { Box, Typography, Divider, IconButton } from "@mui/material";
 import {
   Instagram,
   Facebook,
@@ -27,7 +27,7 @@ const Footer = () => {
       <Box
         sx={{
           display: "flex",
-          flexDirection: "row",
+          flexDirection: "column",
         }}
       >
         <Typography>Follow {APP_NAME}</Typography>
@@ -36,26 +36,39 @@ const Footer = () => {
             textIndent: "1.5em;",
           }}
         >
-          <Instagram
+          <IconButton
+            href="https://linkedin.com"
             sx={{
               marginRight: "10px",
             }}
-          />
-          <Facebook
+          >
+            <Instagram />
+          </IconButton>
+          <IconButton
+            href="https://facebook.com"
             sx={{
               marginRight: "10px",
             }}
-          />
-          <LinkedIn
+          >
+            <Facebook />
+          </IconButton>
+          <IconButton
+            href="https://linkedin.com"
             sx={{
               marginRight: "10px",
             }}
-          />
-          <Twitter
+          >
+            <LinkedIn />
+          </IconButton>
+
+          <IconButton
+            href="https://linkedin.com"
             sx={{
               marginRight: "10px",
             }}
-          />
+          >
+            <Twitter />
+          </IconButton>
         </Box>
       </Box>
       <Divider orientation="horizontal" variant="middle" flexItem />
