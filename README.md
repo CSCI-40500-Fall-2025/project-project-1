@@ -52,3 +52,19 @@ For Firebase init:
 ✔ What do you want to use as your public directory? front-end
 ✔ Configure as a single-page app (rewrite all urls to /index.html)? Yes
 ✔ Set up automatic builds and deploys with GitHub? No
+
+## Layered Architecture
+### Important qualities:
+1. Software reuse
+2. Software compabitibility
+3. System maintainability
+
+### Architecture:
+<img width="656" height="391" alt="architecture-diagram" src="https://github.com/user-attachments/assets/0caaa3f1-e40f-4058-8ec5-5cd9d0cbd436" />
+
+### Technologies
+**Database:** SQL database
+**Platform:** Web browser
+**Server:** Cloud
+**Libraries:** React Calendar, CSS libraries
+**Development tools:** VSCode, Git
