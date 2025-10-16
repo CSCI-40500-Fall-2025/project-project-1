@@ -63,8 +63,8 @@ For Firebase init:
 <img width="656" height="391" alt="architecture-diagram" src="https://github.com/user-attachments/assets/0caaa3f1-e40f-4058-8ec5-5cd9d0cbd436" />
 
 ### Technologies
-**Database:** SQL database
-**Platform:** Web browser
-**Server:** Cloud
-**Libraries:** React Calendar, CSS libraries
+**Database:** SQL database <br>
+**Platform:** Web browser <br>
+**Server:** Cloud <br>
+**Libraries:** React Calendar, CSS libraries <br>
 **Development tools:** VSCode, Git
