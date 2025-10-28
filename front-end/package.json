@@ -7,7 +7,7 @@
     "prepare": "cd .. && husky install front-end/.husky",
     "format": "prettier --write .",
     "dev": "vite",
-    "test": "vitest",
+    "test": "vitest run frontend/**/*.test.ts",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
