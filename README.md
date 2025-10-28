@@ -32,6 +32,9 @@ App runs at:  [http://localhost:5173](http://localhost:5173)
 
 
 	node server.js
+
+	# run tests:
+	npm test
 ```
 
 Server runs at: http://localhost:3000
