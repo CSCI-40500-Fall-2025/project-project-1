@@ -71,3 +71,6 @@ For Firebase init:
 **Server:** Cloud <br>
 **Libraries:** React Calendar, CSS libraries <br>
 **Development tools:** VSCode, Git
+
+### Testing Status
+[![Node.js CI](https://github.com/CSCI-40500-Fall-2025/project-project-1/actions/workflows/node.js.yml/badge.svg)](https://github.com/CSCI-40500-Fall-2025/project-project-1/actions/workflows/node.js.yml)
