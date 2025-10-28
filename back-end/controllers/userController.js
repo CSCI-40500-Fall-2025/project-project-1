@@ -30,7 +30,6 @@ import jwt from "jsonwebtoken";
 
 dotenv.config();
 
-//test fuction: get all usernames
 export async function getUsers(req, res) {
   try {
     const users = await sql`SELECT username FROM users`;
@@ -59,7 +58,6 @@ export async function createUser(req, res) {
     `
     const values = [email, username, hashedPassword];
     const result = await sql.query(query, values);
-    // console.log(result[0]);
     res.status(201).json(result[0]);
   } catch (err) {
     console.log("Error creating user: ", err.message);
@@ -91,7 +89,6 @@ export async function loginUser(req, res) {
       return res.status(400).json({ error: "Invalid email or password" }); //invalid email
     }
     const user = result[0];
-    // console.log(user)
     if (!await bcrypt.compare(password, user.password)) {
       console.log("Invalid password");
       return res.status(400).json({ error: "Invalid email or password" }); //invalid password
