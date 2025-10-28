@@ -2,9 +2,9 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   frontend:
@@ -28,7 +28,7 @@ jobs:
 
       - name: Run frontend tests (Vitest)
         working-directory: front-end
-        run: npx vitest run --threads=false --reporter=default
+        run: npx vitest run --run --reporter=default
   backend:
     runs-on: ubuntu-latest
     strategy:
