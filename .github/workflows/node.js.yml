@@ -1,0 +1,60 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install frontend dependencies
+        working-directory: front-end
+        run: npm ci
+
+      - name: Run frontend tests (Vitest)
+        working-directory: front-end
+        run: npx vitest run --threads=false --reporter=default
+  backend:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Cache backend node_modules
+        uses: actions/cache@v3
+        with:
+          path: back-end/node_modules
+          key: backend-${{ runner.os }}-node-${{ hashFiles('back-end/package-lock.json') }}
+          restore-keys: backend-${{ runner.os }}-node-
+
+      - name: Install backend dependencies
+        working-directory: back-end
+        run: npm ci
+
+      - name: Run backend tests (Jest)
+        working-directory: back-end
+        run: npx jest --ci --bail --reporters=default
