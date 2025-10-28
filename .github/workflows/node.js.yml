@@ -1,4 +1,4 @@
-name: Node.js CI
+name: Frontend & Backend Tests
 
 on:
   push:
@@ -58,3 +58,4 @@ jobs:
       - name: Run backend tests (Jest)
         working-directory: back-end
         run: npx jest --ci --bail --reporters=default
+
