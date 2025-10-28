@@ -1,10 +1,8 @@
-import "@testing-library/jest-dom";
-import "whatwg-fetch";
-
 import { vi } from "vitest";
 
-vi.mock("whatwg-url", () => ({
-  URL: class {
-    constructor() {}
-  },
-}));
+global.fetch = vi.fn(() =>
+  Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({}),
+  })
+) as unknown as typeof fetch;
