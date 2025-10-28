@@ -1,0 +1,74 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'front-end/**'
+      - 'back-end/**'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'front-end/**'
+      - 'back-end/**'
+
+jobs:
+  frontend:
+    if: contains(github.event.head_commit.message, 'front-end') || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Cache frontend node_modules
+        uses: actions/cache@v3
+        with:
+          path: front-end/node_modules
+          key: frontend-${{ runner.os }}-node-${{ hashFiles('front-end/package-lock.json') }}
+          restore-keys: frontend-${{ runner.os }}-node-
+
+      - name: Install frontend dependencies
+        working-directory: front-end
+        run: npm ci
+
+      - name: Run frontend tests (Vitest)
+        working-directory: front-end
+        run: npx vitest run --reporter=default
+
+  backend:
+    if: contains(github.event.head_commit.message, 'back-end') || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Cache backend node_modules
+        uses: actions/cache@v3
+        with:
+          path: back-end/node_modules
+          key: backend-${{ runner.os }}-node-${{ hashFiles('back-end/package-lock.json') }}
+          restore-keys: backend-${{ runner.os }}-node-
+
+      - name: Install backend dependencies
+        working-directory: back-end
+        run: npm ci
+
+      - name: Run backend tests (Jest)
+        working-directory: back-end
+        run: npx jest --ci --bail --reporters=default
