@@ -57,7 +57,7 @@ const LoginPane = ({ onSwitchToRegister }: LoginPaneProps) => {
       setEmailErrorMessage("");
     }
 
-    if (!password) {
+    if (!password || password.length < 6) {
       setPasswordErrorMessage("Password is required.");
       isValid = false;
     } else {
