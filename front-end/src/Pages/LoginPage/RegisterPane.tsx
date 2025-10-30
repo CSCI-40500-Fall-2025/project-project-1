@@ -54,8 +54,6 @@ const RegisterPane = ({ onSwitchToLogin }: RegisterPaneProps) => {
   const validateInputs = () => {
     let isValid = true;
 
-    //check if username is taken -- to be implemented
-    //check if email is taken -- to be implemented
     if (!username) {
       setUsernameError("Username is required.");
       isValid = false;
