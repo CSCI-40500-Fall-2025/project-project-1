@@ -8,11 +8,11 @@ import WelcomePage from "./WelcomePage";
 
 const Layout = () => {
   const location = useLocation();
+  const { user, logout } = useAuth();
 
   const useGradientBackground =
     location.pathname === "/" || location.pathname === "/login"; // or "/welcome"
   const isRootPath = location.pathname === "/";
-  const { user, logout } = useAuth();
   const loggedIn = user !== null;
   let content;
 
@@ -35,10 +35,7 @@ const Layout = () => {
         <Box
           component="main"
           sx={{
-            flex: 1,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
+            padding: 9,
           }}
         >
           {content}
