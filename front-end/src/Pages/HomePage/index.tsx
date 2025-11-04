@@ -1,63 +1,114 @@
 import Box from "@mui/material/Box";
 import { useAuth } from "../../AuthContext";
+import { Typography } from "@mui/material";
+import Grid from "@mui/material/Grid";
+import type { TodayEvent } from "../../const";
+import EventCard from "../../components/EventCard";
 
 const HomePage = () => {
   const { user: authUser } = useAuth();
+  const today = new Date();
   const userName = authUser ? authUser.username : "Guest";
+  const todayEvents: TodayEvent[] = [
+    {
+      eventID: 1,
+      eventName: "Morning Yoga",
+      eventTime: "08:00 AM",
+      organizerName: "Alice",
+      eventDescription: "Start your day with yoga.",
+      groupName: "Wellness Group",
+    },
+    {
+      eventID: 2,
+      eventName: "GYM Session",
+      eventTime: "10:00 AM",
+      organizerName: "Bob",
+      eventDescription: "GYMMMM",
+      groupName: "Fitness Group",
+      location: "Local Gym",
+    },
+    {
+      eventID: 3,
+      eventName: "Book Club Meeting",
+      eventTime: "02:00 PM",
+      organizerName: "Carol",
+      eventDescription: "Discussing 'The Great Gatsby'.",
+      groupName: "Book Lovers",
+    },
+    {
+      eventID: 4,
+      eventName: "Cooking Workshop",
+      eventTime: "05:00 PM",
+      organizerName: "Dave",
+      eventDescription: "Learn to cook Italian cuisine.",
+      groupName: "Culinary Arts",
+      location: "Community Center",
+    },
+    {
+      eventID: 5,
+      eventName: "Evening Run",
+      eventTime: "07:00 PM",
+      organizerName: "Eve",
+      eventDescription: "Group run in the park.",
+      groupName: "Runners Club",
+    }
+  ];
 
   console.log("HomePage - authUser:", authUser);
-
-  // returns username, email, and id if user is logged in
-  // useEffect(() => {
-  //   checkLogin()
-  //     .then((res) => {
-  //       if (res) {
-  //         setUser(res);
-  //       } else {
-  //         console.log("User not logged in");
-  //       }
-  //     });
-  // }, []);
-
-  //test function: Get all usernames
-  // useEffect(() => {
-  //   if (!user) return;
-  //   getUser()
-  //     .then((res) => {
-  //       console.log("users response:", res);
-  //       setAllUsers(res)
-  //     })
-  //     .catch(() => setAllUsers([]));
-  // }, [user]);
-
-  // const handleLogout = () => {
-  //   logoutUser()
-  //   .then((res) => {
-  //     console.log("logout response: ", res);
-  //   })
-  //   .catch(() => console.log("error logging out"))
-  // }
   return (
     <Box
       sx={{
         display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "calc(100vh - 64px)",
-        padding: 2,
+        alignContent: "space-between",
         flexDirection: "column",
+        width: "100%",
+        gap: 2,
       }}
     >
-      <div>Welcome, {userName}!</div>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 1,
+          flexGrow: 2,
+        }}
+      >
+        <Typography
+          component="h1"
+          variant="h2"
+          sx={{ paddingTop: 4, fontWeight: "normal" }}
+        >
+          Hello, {userName}!
+        </Typography>
+        <Typography component="h2" variant="h5" sx={{ lineHeight: "normal" }}>
+          Today is{" "}
+          {today.toLocaleDateString(undefined, {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })}
+          .
+        </Typography>
+      </Box>
 
-      {/* <div>BING BONG {message}</div>
-          {user? `Currently logged in as: ${user.username}, ${user.email}` : "Not logged in"}
-          <div>Users: </div>
-          <div>
-            {allUsers ? allUsers.map((user, i) => (
-              <div key={i}>{user.username}</div>
-            )) : ""}
-          </div> */}
+      <Box sx={{ flexGrow: 1 }}>
+        <Typography
+          component="h2"
+          variant="h4"
+          sx={{ paddingTop: 2, fontWeight: "bold" }}
+        >
+          {`Today's Events`}
+        </Typography>
+      </Box>
+
+      <Grid container spacing={2}>
+        {todayEvents.map((event) => (
+          <Grid size={3} key={event.eventID}>
+            <EventCard event={event} />
+          </Grid>
+        ))}
+      </Grid>
     </Box>
   );
 };

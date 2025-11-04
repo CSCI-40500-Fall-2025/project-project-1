@@ -13,7 +13,7 @@ export async function createUser(
     //credentials: "include", registration endpoint doesn’t need cookies cause you are creating a new user
   });
 
-  let data: any = null;
+  let data = null;
   try {
     data = await res.json();
   } catch (err) {
