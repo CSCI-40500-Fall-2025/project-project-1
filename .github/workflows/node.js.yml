@@ -78,7 +78,7 @@ jobs:
       - name: Deploy to Firebase Hosting
         run: cd front-end && firebase deploy --only hosting
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
       - name: Create Deployment Record
         uses: chrnorm/deployment-action@v2
         with:
