@@ -22,7 +22,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route path="login" element={<LoginPage />} />
-            <Route path="*" element={<div>404 Not Found test123</div>} />
+            <Route path="*" element={<div>404 Not Found 1qwe1</div>} />
             <Route element={<ProtectedRoute />}>
               <Route path ="home" element={<HomePage />} />
               <Route path="friends" element={<FriendsPage />} />
