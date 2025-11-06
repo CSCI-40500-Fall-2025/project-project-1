@@ -59,3 +59,24 @@ jobs:
         working-directory: back-end
         run: npx jest --ci --bail --reporters=default
 
+      - name: Build (optional)
+        working-directory: front-end
+        if: success()
+        run: npm run build
+
+      - name: Deploy to Firebase
+        if: success()
+        uses: w9jds/firebase-action@v13.24.1
+        with:
+          args: deploy --only hosting
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      - name: Create Deployment record
+        if: success()
+        uses: chrnorm/deployment-action@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          environment: production
+          environment-url: https://bing-bong-77845.web.app/
+          description: Firebase hosting deployment
