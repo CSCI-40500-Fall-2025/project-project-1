@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Calendar, momentLocalizer, type View } from "react-big-calendar";
 import { RRule, type Options as RRuleOptions } from "rrule";
+import { Tooltip } from 'react-tooltip';
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import './Calendar.css';
@@ -15,6 +16,34 @@ interface MyEvent {
   title: string;
   rrule?: Partial<RRuleOptions>; // { freq: RRule.WEEKLY, count: 5, }
 }
+
+const CustomToolbar = (toolbar: any) => {
+  return (
+    <div className="rbc-toolbar">
+      <span className="rbc-btn-group">
+                <button type="button" onClick={() => toolbar.onNavigate('TODAY')}>Today</button>
+        <button type="button" onClick={() => toolbar.onNavigate('PREV')}>&lt;</button>
+        <button type="button" onClick={() => toolbar.onNavigate('NEXT')}>&gt;</button>
+      </span>
+      <span className="rbc-toolbar-label">{toolbar.label}</span>
+      <span className="rbc-btn-group">
+        <button type="button" className={toolbar.view === 'month' ? 'rbc-active' : ''} onClick={() => toolbar.onView('month')}>Month</button>
+        <button type="button" className={toolbar.view === 'week' ? 'rbc-active' : ''} onClick={() => toolbar.onView('week')}>Week</button>
+        <button type="button" className={toolbar.view === 'day' ? 'rbc-active' : ''} onClick={() => toolbar.onView('day')}>Day</button>
+        <button type="button" className={toolbar.view === 'agenda' ? 'rbc-active' : ''} onClick={() => toolbar.onView('agenda')}>Agenda</button>
+      </span>
+    </div>
+  );
+};
+
+// const CustomEvent = ({ event }: { event: MyEvent }) => {
+//   const tooltipContent = `${event.title}<br>${moment(event.start).format('MMM D, YYYY h:mm A')} to ${moment(event.end).format('h:mm A')}`;
+//   return (
+//     <div data-tooltip-id="event-tooltip" data-tooltip-html={tooltipContent}>
+//       {event.title}
+//     </div>
+//   );
+// };
 
 export default function ReactBigCalendar() {
   const [eventsData, setEventsData] = useState<MyEvent[]>([
@@ -83,7 +112,12 @@ export default function ReactBigCalendar() {
         events={expandRecurringEvents(eventsData)}
         onSelectEvent={(event: MyEvent) => alert(JSON.stringify(event))}
         onSelectSlot={handleSelect}
+        components={{
+          toolbar: CustomToolbar,
+          // event: CustomEvent
+        }}
       />
+      {/* <Tooltip id="event-tooltip" /> */}
     </div>
   );
 }
