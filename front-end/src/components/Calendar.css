@@ -8,9 +8,12 @@
 }
 
 .rbc-calendar {
-    width: 80% !important;
-    height: 80vh;
-    padding: 20px 0;
+    width: 90% !important;
+    height: 85vh;
+    padding: 20px;
+    background: linear-gradient(135deg, #8B5FBF 0%, #D4A5D4 50%, #E8C4E8 100%);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .rbc-off-range-bg {
@@ -19,17 +22,61 @@
 
 .rbc-day-bg {
     background-color: transparent !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+}
+
+.rbc-day-bg:first-child {
+    border-left: none !important;
 }
 
 .rbc-today {
-    background-color: rgba(255, 255, 255, 0.7) !important;
+    background-color: rgba(255, 255, 255, 0.15) !important;
 }
+
 .rbc-btn {
-    color: rgb(221, 221, 221) !important;
+    color: white !important;
+}
+
+.rbc-time-column {
+  background-color: transparent !important;
 } 
 
 .rbc-timeslot-group {
-    border:none;
+    border: none;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.3) !important;
+}
+
+.rbc-time-slot {
+  border-top: none !important;
+  border-bottom: none !important;
+}
+
+.rbc-day-slot .rbc-time-slot {
+  border-top: 1px solid rgba(128, 128, 128, 0.25);
+}
+
+.rbc-time-content {
+  border-top: none !important;
+  background-color: rgba(255, 255, 255);
+  border-radius: 0 0 15px 15px;
+}
+
+.rbc-day-slot {
+  border-left: none !important;
+}
+
+.rbc-day-slot:first-child {
+  border-left: none !important;
+}
+
+.rbc-label {
+  color: rgba(103, 103, 103, 0.8);
+  font-size: 0.8rem;
+  font-weight: 400;
+  padding-right: 10px;
 }
 
 /* increase time slot height */
@@ -42,7 +89,7 @@
 }
 
 .rbc-event {
-  background-color: #80a6c9ff;
+  background-color: rgb(221, 47, 120);
   border: none;
   color: #fff;
   border-radius: 6px;
@@ -62,19 +109,47 @@
 }
 
 .rbc-header {
-  background-color: white;
-  color: rgba(0, 0, 0, 0.87);
-  font-size: 0.8rem;
+  background-color: rgba(255, 255, 255, 0.4);
+  color: white;
+  font-size: 0.9rem;
   font-weight: 600;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   text-align: center;
+  padding: 16px 12px;
+  border-radius: 12px;
+  border: none !important;
+  margin: 4px;
+  backdrop-filter: blur(10px);
+}
+
+.rbc-header:last-child {
+  border-right: none !important;
+}
+
+.rbc-time-header-cell {
+  min-width: 0 !important;
+}
+
+.rbc-time-header-cell .rbc-header {
+  border-right: none !important;
 }
 
 .rbc-time-header-cell .rbc-header .rbc-button-link{
-    color: rgb(0, 0, 0) !important;
-    font-size:0.9rem;
-    font-weight: 400;
-    padding:12px 0;
+    color: white !important;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0;
+    display: block;
+}
+
+.rbc-time-header-cell .rbc-header .rbc-button-link span {
+  display: block;
+}
+
+.rbc-time-header-cell .rbc-header .rbc-button-link span:first-child {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 2px;
 }
 
 
@@ -86,17 +161,32 @@
 /* Remove borders around time view (work week) */
 .rbc-time-view {
     border: none !important;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.rbc-time-header {
+  border-radius: 0;
+  overflow: visible;
+  background: transparent;
+  padding: 0 10px;
+  margin-bottom: 10px;
+}
+
+.rbc-time-header-content {
+  border: none !important;
 }
 
 /* Scrollbar track */
 .rbc-time-content::-webkit-scrollbar-track {
-  background: #11063271; /* same as your dark background */
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
 }
 
 /* Scrollbar thumb */
 .rbc-time-content::-webkit-scrollbar-thumb {
-  background-color: rgba(128, 166, 201, 0.6);
-  border-radius: 6px;
+  background-color: rgba(139, 95, 191, 0.5);
+  border-radius: 10px;
 }
 
 /* Optional: scrollbar width */
@@ -105,35 +195,45 @@
 }
 
 .rbc-current-time-indicator {
-  background-color: #ff4d4d !important;
   height: 2px !important;
 }
 
 /* Toolbar button styles */
 .rbc-toolbar {
-  padding: 10px 0;
+  padding: 15px 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 15px;
 }
 
 .rbc-toolbar-label {
-    font-size:1.2rem;
-    font-weight: 500;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .rbc-toolbar button {
   background: transparent;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
   cursor: pointer;
-  transition: background 0.15s ease-in-out;
+  transition: all 0.2s ease-in-out;
   color: white !important;
-
-  font-size:0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
 }
 
 .rbc-toolbar button:hover {
-  background: #d3a4a4;
+  background: #8B5FBF;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.rbc-toolbar button.rbc-active {
+  background: #8B5FBF;
+  font-weight: 700;
 }

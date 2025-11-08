@@ -33,6 +33,7 @@ const GroupBox: React.FC<GroupBoxProps> = ({ group }) => {
                     cursor: "pointer",
                     "&:hover": {
                         boxShadow: 6,
+                        backgroundColor: '#484663ff',
                         transform: "scale(1.05)",
                         transition: "transform 0.2s ease, box-shadow 0.2s ease"
                     },
