@@ -1,7 +1,6 @@
 import * as eventService from "../eventService.js";
 import { sql } from "../neon.js";
 
-// Mock the Neon client correctly
 jest.mock("../neon.js", () => ({
   sql: {
     query: jest.fn(),

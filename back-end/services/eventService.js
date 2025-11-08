@@ -90,7 +90,6 @@ export async function updateEvent(event_id, updateData) {
   }
 }
 
-// Update only the attendees count
 export async function updateAttendees(event_id, newAttendeeCount) {
   const query = `
     UPDATE events
