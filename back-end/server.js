@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import userRoutes from "./routes/user.js";
+import calendarRoutes from "./routes/calendar.js";
 import cookieParser from "cookie-parser";
 // import functions from "firebase-functions";
 
@@ -17,6 +18,7 @@ app.use(express.json()); // parse JSON request body
 app.use(cookieParser()); // parse cookies
 
 app.use("/api/user", userRoutes);
+app.use("/api/calendar", calendarRoutes);
 
 // Routes
 app.get("/", (req, res) => {
