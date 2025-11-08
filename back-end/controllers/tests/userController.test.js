@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { createUser, loginUser } from "../../controllers/userController.js";
+import { createUser, loginUser } from "../userController.js";
 import { sql } from "../../services/neon.js";
 
 jest.mock("../../services/neon.js", () => ({
@@ -15,7 +15,6 @@ jest.mock("bcrypt", () => ({
 jest.mock("jsonwebtoken", () => ({
   sign: jest.fn(),
 }));
-
 
 function mockResponse() {
   const res = {};

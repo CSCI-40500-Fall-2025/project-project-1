@@ -1,8 +1,16 @@
 import express from "express";
 import cors from "cors";
-import userRoutes from "./routes/user.js";
+import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
+
+import userRoutes from "./routes/user.js";
+import eventRoutes from "./routes/events.js";
+import groupRoutes from "./routes/groups.js";
+
+
 // import functions from "firebase-functions";
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,17 +21,19 @@ app.use(cors({
           "https://bing-bong-77845.web.app"],
   credentials: true,
 }));
+
 app.use(express.json()); // parse JSON request body
 app.use(cookieParser()); // parse cookies
 
-app.use("/api/user", userRoutes);
 
 // Routes
 app.get("/", (req, res) => {
   res.json({ message: "Hi this is server" });
 });
 
-
+app.use("/api/user", userRoutes);
+app.use("/api/events", eventRoutes);
+app.use("/api/groups", groupRoutes);
 
 // Start server (if running locally)
 app.listen(PORT, () => {
