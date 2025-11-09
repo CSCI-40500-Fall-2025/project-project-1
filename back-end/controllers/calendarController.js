@@ -5,8 +5,8 @@ dotenv.config();
 
 export async function upsertCalendar(req, res) {
     try {
-        const { user_id, calendar_data } = req.body;
-        console.log(user_id, calendar_data );
+        const user_id = req.user.id;
+        const calendar_data = req.body;
         if (!user_id || !calendar_data) {
             return res.status(400).json({ error: "user_id and calendar required" });
         }
@@ -23,8 +23,7 @@ export async function upsertCalendar(req, res) {
 
         const values = [user_id, JSON.stringify(calendar_data)];
         const result = await sql.query(query, values);
-
-        res.status(200).json(result[0]);
+        res.status(200).json(result[0].calendar_data);
     } catch (err) {
         res.status(500).json({ error: `Failed to upsert calendar: ${err.message}` });
     }
@@ -32,7 +31,7 @@ export async function upsertCalendar(req, res) {
 
 export async function getCalendar(req, res) {
     try{
-        const {user_id} = req.body;
+        const user_id = req.user.id;
         if (!user_id){
             return res.status(400).json({ error: "user_id required" });
         }
@@ -42,10 +41,11 @@ export async function getCalendar(req, res) {
         `
         const values = [user_id];
         const result = await sql.query(query, values);
+
         if (result.length === 0) {
             res.status(404).json({ error: "No calendars found for this user" });
         }
-        res.status(200).json(result[0]);
+        res.status(200).json(result[0].calendar_data);
     } catch (err){
         res.status(500).json({ error: `Failed to get calendar: ${err.message}` });
     }
