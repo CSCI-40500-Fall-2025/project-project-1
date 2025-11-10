@@ -57,7 +57,7 @@ describe("Event Service", () => {
     describe("getAllEvents", () => {
       test("should return all events", async () => {
         const fakeEvents = [fakeEvent, createFakeEvent("e2")];
-        sql.query.mockResolvedValue({ rows: fakeEvents });
+        sql.query.mockResolvedValue( fakeEvents );
 
         const result = await eventService.getAllEvents();
 

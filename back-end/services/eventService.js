@@ -3,7 +3,7 @@ import { pool } from "../db/pgPool.js";
 
 export async function getAllEvents() {
   const query = `SELECT * FROM events`;
-  const { rows } = await sql.query(query);
+  const rows  = await sql.query(query);
   return rows;
 }
 export async function getEventById(event_id) {

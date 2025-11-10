@@ -1,4 +1,6 @@
-jest.mock("../../db/neon.js");
+jest.mock("../../db/neon.js", () => ({
+  sql: jest.fn() ,
+}));
 
 import * as groupService from "../../services/groupService";
 import { sql } from "../../db/neon.js";
