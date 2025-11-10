@@ -7,7 +7,10 @@ on:
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: >
+      ${{ github.event.workflow_run.conclusion == 'success' && 
+      github.event.workflow_run.head_branch && 
+      github.event.workflow_run.head_branch == 'main' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,17 +23,27 @@ jobs:
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
       - name: Create Firebase credentials file
-        run: echo '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}' > firebase-key.json
+        run: echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}" > firebase-key.json
         shell: bash
       - name: Deploy to Firebase Hosting
         working-directory: front-end
         run: firebase deploy --only hosting
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/firebase-key.json
+      - name: Clean up credentials
+        run: rm firebase-key.json
+
       - name: Create Deployment Record
+        id: create_deployment   
         uses: chrnorm/deployment-action@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           environment: production
           environment-url: https://bing-bong-77845.web.app/
           description: Firebase hosting deployment
+      - name: Deployment successful
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          deployment-id: ${{ steps.create_deployment.outputs.deployment_id }}
+          state: success
