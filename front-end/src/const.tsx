@@ -32,4 +32,23 @@ export type Group = {
   memberIDs: string[];
 };
 
+export type RecurrenceRule = {
+  freq: number;
+  count: number;
+};
+
+export type CalendarEvent = {
+  title: string;
+  start: Date; 
+  end: Date;  
+  rrule?: RecurrenceRule; 
+};
+
+export type Calendar = {
+  calendarID: string;
+  userID: string;
+  calendar_data: CalendarEvent[]; 
+  updated_at: number;
+};
+
 export const APP_NAME = "Socialite";

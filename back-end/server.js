@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import userRoutes from "./routes/user.js";
+import calendarRoutes from "./routes/calendar.js";
 import cookieParser from "cookie-parser";
 
 import userRoutes from "./routes/user.js";
@@ -25,6 +27,8 @@ app.use(cors({
 app.use(express.json()); // parse JSON request body
 app.use(cookieParser()); // parse cookies
 
+app.use("/api/user", userRoutes);
+app.use("/api/calendar", calendarRoutes);
 
 // Routes
 app.get("/", (req, res) => {
