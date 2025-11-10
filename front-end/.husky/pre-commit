@@ -7,6 +7,6 @@ echo "Running frontend tests (Vitest)..."
 (npx vitest --changed) || exit 1
 
 echo "Running backend tests (Jest)..."
-(cd ../../back-end &&  npx jest --onlyChanged) || exit 1
+(cd ../../back-end &&  npx jest --onlyChanged --bail --cache) || exit 1
 
 npx lint-staged
