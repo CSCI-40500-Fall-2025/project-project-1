@@ -57,4 +57,4 @@ jobs:
 
       - name: Run backend tests (Jest)
         working-directory: back-end
-        run: npx jest --ci --bail --reporters=default
+        run: npx jest --ci --bail --maxWorkers=50% --reporters=default

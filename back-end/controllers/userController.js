@@ -23,19 +23,15 @@
 //   }
 // };
 
-import { sql } from "../services/neon.js";
+import { sql } from "../db/neon.js";
 import bcrypt from "bcrypt";
-import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
-
-dotenv.config();
 
 export async function getUsers(req, res) {
   try {
     const users = await sql`SELECT username FROM users`;
     res.json(users);
   } catch (err) {
-    console.error("Error fetching users:", err);
     res.status(500).json({ error: "Failed to fetch users" });
   }
 }
@@ -44,7 +40,9 @@ export async function createUser(req, res) {
   try {
     const { email, username, password } = req.body;
     if (!username || !password || !email) {
-      return res.status(400).json({ error: "Username, email and password required" });
+      return res
+        .status(400)
+        .json({ error: "Username, email and password required" });
     }
 
     // Hash the password before storing it
@@ -55,19 +53,19 @@ export async function createUser(req, res) {
       INSERT INTO users (email, username, password)
       VALUES ($1, $2, $3)
       RETURNING id, username, email
-    `
+    `;
     const values = [email, username, hashedPassword];
     const result = await sql.query(query, values);
     res.status(201).json(result[0]);
   } catch (err) {
-    console.log("Error creating user: ", err.message);
-    if (err.constraint === 'users_email_key') { // duplicate key value violates unique constraint "users_email_key"
+    if (err.constraint === "users_email_key") {
+      // duplicate key value violates unique constraint "users_email_key"
       res.status(400).json({ error: "Email already in use" });
-    }
-    else if (err.constraint === 'users_username_key') { // duplicate key value violates unique constraint "users_username_key"
+    } else if (err.constraint === "users_username_key") {
+      // duplicate key value violates unique constraint "users_username_key"
       res.status(400).json({ error: "Username already in use" });
-    }
-    else res.status(500).json({ error: `Failed to create user: ${err.message}` });
+    } else
+      res.status(500).json({ error: `Failed to create user: ${err.message}` });
   }
 }
 
@@ -81,16 +79,14 @@ export async function loginUser(req, res) {
       SELECT id, username, email, password
       FROM users
       WHERE email = $1
-    `
+    `;
     const values = [email];
     const result = await sql.query(query, values);
     if (result.length === 0) {
-      console.log("Invalid email");
       return res.status(400).json({ error: "Invalid email or password" }); //invalid email
     }
     const user = result[0];
-    if (!await bcrypt.compare(password, user.password)) {
-      console.log("Invalid password");
+    if (!(await bcrypt.compare(password, user.password))) {
       return res.status(400).json({ error: "Invalid email or password" }); //invalid password
     }
 
@@ -108,9 +104,14 @@ export async function loginUser(req, res) {
       sameSite: "none",
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     });
-    res.json({ message: "Login successful", id: user.id, username: user.username, email: user.email });
+    res.json({
+      message: "Login successful",
+      id: user.id,
+      username: user.username,
+      email: user.email,
+    });
   } catch (err) {
-    console.log("Error logging in user: ", err.message);
+    res.status(500).json({ error: "Failed to login user" });
   }
 }
 

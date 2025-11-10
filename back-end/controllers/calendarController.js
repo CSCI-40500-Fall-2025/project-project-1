@@ -1,7 +1,4 @@
-import { sql } from "../services/neon.js";
-import dotenv from "dotenv";
-
-dotenv.config();
+import { sql } from "../db/neon.js";
 
 export async function upsertCalendar(req, res) {
     try {

@@ -3,8 +3,7 @@
 
 # Bing Bong
 
-### Test
-[![Testing Status](https://github.com/CSCI-40500-Fall-2025/project-project-1/actions/workflows/node.js.yml/badge.svg)](https://github.com/CSCI-40500-Fall-2025/project-project-1/actions/workflows/node.js.yml)
+[![Testing Status](https://github.com/CSCI-40500-Fall-2025/project-project-1/actions/workflows/node.js.yml/badge.svg)](https://github.com/CSCI-40500-Fall-2025/project-project-1/actions/workflows/node.js.yml) [![Frontend Deployment](https://github.com/CSCI-40500-Fall-2025/project-project-1/actions/workflows/deploy.yml/badge.svg)](https://github.com/CSCI-40500-Fall-2025/project-project-1/actions/workflows/deploy.yml)
 
 Figma Prototype: https://www.figma.com/design/uYJhX81BXaZXSea7oK4Wjr/SWE-Proj?node-id=0-1&t=lr60PfD8MiXTsyvA-1
 
