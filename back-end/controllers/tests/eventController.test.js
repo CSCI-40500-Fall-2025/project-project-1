@@ -1,6 +1,11 @@
 import { getAllEvents, createEvent } from "../eventController.js";
 import * as eventService from "../../services/eventService.js";
 
+jest.mock("../../db/neon.js", () => ({
+  sql: { query: jest.fn() },
+}));
+
+
 jest.mock("../../services/eventService.js");
 
 let req;

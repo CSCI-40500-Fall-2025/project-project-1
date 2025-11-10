@@ -5,6 +5,10 @@ import { nanoid, customAlphabet } from "nanoid";
 jest.mock("../../services/groupService.js");
 jest.mock("nanoid");
 
+jest.mock("../../db/neon.js", () => ({
+  sql: { query: jest.fn() },
+}));
+
 describe("Group Controller", () => {
   let req;
   let res;
@@ -54,7 +58,7 @@ describe("Group Controller", () => {
     });
 
     test("create a new group successfully", async () => {
-       req = { body: { group_name: "Cool Group" } };
+      req = { body: { group_name: "Cool Group" } };
       const fakeGroup = {
         group_id: "fixedID",
         group_name: "Cool Group",
@@ -80,7 +84,7 @@ describe("Group Controller", () => {
     });
 
     test("retry on duplicate key error and eventually succeed", async () => {
-       req = { body: { group_name: "Retry Group" } };
+      req = { body: { group_name: "Retry Group" } };
       const duplicateError = new Error("duplicate");
       duplicateError.code = "23505";
 
@@ -107,7 +111,7 @@ describe("Group Controller", () => {
     });
 
     test("fail after 3 retries on duplicate key error", async () => {
-       req = { body: { group_name: "Fail Group" } };
+      req = { body: { group_name: "Fail Group" } };
       const duplicateError = new Error("duplicate");
       duplicateError.code = "23505";
 
