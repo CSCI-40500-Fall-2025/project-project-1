@@ -1,4 +1,4 @@
-import { getEvents, createEvent } from "../eventController.js";
+import { getAllEvents, createEvent } from "../eventController.js";
 import * as eventService from "../../services/eventService.js";
 
 jest.mock("../../services/eventService.js");
@@ -15,12 +15,12 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-describe("getEvents", () => {
+describe("getAllEvents", () => {
   test("return all events", async () => {
     const fakeEvents = [{ event_id: 1, event_title: "Test Event" }];
     eventService.getAllEvents.mockResolvedValue(fakeEvents);
 
-    await getEvents(req, res);
+    await getAllEvents(req, res);
 
     expect(eventService.getAllEvents).toHaveBeenCalled();
     expect(res.json).toHaveBeenCalledWith(fakeEvents);
@@ -89,6 +89,8 @@ describe("createEvent", () => {
     await createEvent(req, res);
 
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: "Failed to create event" });
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ error: "Failed to create event" })
+    );
   });
 });

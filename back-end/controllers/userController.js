@@ -23,7 +23,7 @@
 //   }
 // };
 
-import { sql } from "../services/neon.js";
+import { sql } from "../db/neon.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 

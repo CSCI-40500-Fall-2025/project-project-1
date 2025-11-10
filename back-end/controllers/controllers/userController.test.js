@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { createUser, loginUser } from "../userController";
+import { createUser, loginUser } from "../userController.js";
 import { sql } from "../../db/neon.js";
 
 jest.mock("../../db/neon.js", () => ({

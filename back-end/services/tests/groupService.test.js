@@ -1,8 +1,7 @@
-import jestConfig from "../../jest.config.cjs";
-import * as groupService from "../../services/groupService.js";
-import { sql } from "../neon.js";
+jest.mock("../../db/neon.js");
 
-jest.mock("../neon.js");
+import * as groupService from "../../services/groupService";
+import { sql } from "../../db/neon.js";
 
 describe("Group Service", () => {
   beforeEach(() => {
