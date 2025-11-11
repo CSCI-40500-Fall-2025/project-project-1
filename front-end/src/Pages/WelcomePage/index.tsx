@@ -45,7 +45,6 @@ const WelcomePage = () => {
       <Box
         sx={{
           height: "auto",
-          width: "100vw",
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",

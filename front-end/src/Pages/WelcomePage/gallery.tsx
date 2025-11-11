@@ -16,10 +16,13 @@ export default function Gallery() {
   return (
     <Box
       sx={{
-        width: "100%",
+        width: "100vw",
         display: "flex",
         flexDirection: "column",
+        justifyContent: "center",
+        justifySelf: 'center',
         alignItems: "center",
+        alignSelf: 'center',
         py: 4,
       }}
     >
@@ -28,14 +31,18 @@ export default function Gallery() {
       </Typography>
 
       <ImageList
-              sx={{
-                  marginLeft: '10px', 
-                  marginRight: '10px',
-          width: "auto",
-            maxWidth: 1000,
+        sx={{
+          width: "100%",
+          maxWidth: {
+            xs: 350, // mobile
+            sm: 600, // tablet
+            md: 1200, // desktop
+          },
           maxHeight: 1000,
-          overflow: "hidden",
+          overflowX: "hidden",
           borderRadius: 2,
+          mx: "auto", // centers horizontally
+          px: 1, // small inner padding for mobile
         }}
         variant="quilted"
         cols={4}
