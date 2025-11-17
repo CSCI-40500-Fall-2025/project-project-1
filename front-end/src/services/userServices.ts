@@ -1,4 +1,5 @@
 import type { User } from "../const";
+import logAction from "../logger";
 const API_URL = "http://localhost:3000/api";
 
 export async function createUser(
@@ -22,6 +23,7 @@ export async function createUser(
 
   if (!res.ok) {
     const errMessage = data?.error || "Failed to create user";
+    logAction('error','Create User', 'Failed')
     throw new Error(errMessage);
   }
 
