@@ -2,15 +2,18 @@ import Box from "@mui/material/Box";
 import ReactBigCalendar from "../../components/Calendar";
 import { TextField, Button } from "@mui/material";
 import React, { useState } from "react";
+import { number } from "motion";
 
 const FirstPage = () => {
   const [formData, setFormData] = useState({
-    title: '',
-    start: '',
-    end: '',
+    group_id: 0,
+    event_title: '',
+    event_description: '',
+    event_datetime: new Date(),
     location: '',
+    event_host: 0,
+    attendees: '',
   });
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const {name, value} = e.target;
     setFormData(prev => ({
@@ -51,25 +54,25 @@ const FirstPage = () => {
         <TextField
           label="Title"
           name="title"
-          value={formData.title}
+          value={formData.event_title}
           onChange={handleChange}
         />
         <TextField
-          label="Start Time"
-          name="start"
-          value={formData.start}
+          label="Description"
+          name="description"
+          value={formData.event_description}
           onChange={handleChange}
         />
         <TextField
-          label="End Time"
-          name="end"
-          value={formData.end}
+          label="Date"
+          name="date"
+          value={formData.event_datetime}
           onChange={handleChange}
         />
         <TextField
           label="Location"
           name="location"
-          value={formData.end}
+          value={formData.location}
           onChange={handleChange}
         />
         <Button 
