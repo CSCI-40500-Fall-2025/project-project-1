@@ -7,6 +7,9 @@ import './Calendar.css';
 import { upsertCalendar, getCalendar } from "../services/calendarServices";
 import type { CalendarEvent, RecurrenceRule } from "../const";
 import { Dialog, TextField, Button, Select, MenuItem } from "@mui/material";
+import { Tooltip } from 'react-tooltip';
+import { BsChevronCompactLeft, BsChevronCompactRight } from "react-icons/bs";
+
 
 moment.locale("en-GB");
 const localizer = momentLocalizer(moment);
@@ -22,9 +25,9 @@ const CustomToolbar = (toolbar: any) => {
   return (
     <div className="rbc-toolbar">
       <span className="rbc-btn-group">
-                <button type="button" onClick={() => toolbar.onNavigate('TODAY')}>Today</button>
-        <button type="button" onClick={() => toolbar.onNavigate('PREV')}>&lt;</button>
-        <button type="button" onClick={() => toolbar.onNavigate('NEXT')}>&gt;</button>
+        <button type="button" onClick={() => toolbar.onNavigate('TODAY')}>Today</button>
+        <button type="button" onClick={() => toolbar.onNavigate('PREV')}><BsChevronCompactLeft style={{fontSize: '25px'}}/></button>
+        <button type="button" onClick={() => toolbar.onNavigate('NEXT')}><BsChevronCompactRight style={{fontSize: '25px'}}/></button>
       </span>
       <span className="rbc-toolbar-label">{toolbar.label}</span>
       <span className="rbc-btn-group">
@@ -37,14 +40,20 @@ const CustomToolbar = (toolbar: any) => {
   );
 };
 
-// const CustomEvent = ({ event }: { event: MyEvent }) => {
-//   const tooltipContent = `${event.title}<br>${moment(event.start).format('MMM D, YYYY h:mm A')} to ${moment(event.end).format('h:mm A')}`;
-//   return (
-//     <div data-tooltip-id="event-tooltip" data-tooltip-html={tooltipContent}>
-//       {event.title}
-//     </div>
-//   );
-// };
+const CustomEvent = ({ event }: { event: CalendarEvent }) => {
+  const tooltipContent = `
+    <div style="font-weight: bold; margin-bottom: 8px;">${event.title}</div>
+    <div style="margin-bottom: 4px;"><strong>Date:</strong> ${moment(event.start).format('MMM D, YYYY')}</div>
+    <div style="margin-bottom: 4px;"><strong>Start Time:</strong> ${moment(event.start).format('h:mm A')}</div>
+    <div style="margin-bottom: 4px;"><strong>End Time:</strong> ${moment(event.end).format('h:mm A')}</div>
+    <div><strong>Additional Information:</strong> ${event.rrule ? `Repeats ${event.rrule.freq === 1 ? 'daily' : event.rrule.freq === 2 ? 'weekly' : event.rrule.freq === 3 ? 'monthly' : 'custom'} (${event.rrule.count} times)` : 'One-time event'}</div>
+  `;
+  return (
+    <div data-tooltip-id="event-tooltip" data-tooltip-html={tooltipContent}>
+      {event.title}
+    </div>
+  );
+};
 
 export default function ReactBigCalendar() {
   const [eventsData, setEventsData] = useState<CalendarEvent[]>([
@@ -58,7 +67,7 @@ export default function ReactBigCalendar() {
       },
     }
   ]);
-  const [currentView, setCurrentView] = useState<View>("month");
+  const [currentView, setCurrentView] = useState<View>("week");
   const [date, setDate] = useState(new Date());
   const [showModal, setShowModal] = useState(false);
   const [newEvent, setNewEvent] = useState<CalendarEvent>({ 
@@ -162,12 +171,17 @@ export default function ReactBigCalendar() {
         events={expandRecurringEvents(eventsData)}
         onSelectEvent={(event: CalendarEvent) => handleEditEvent(event)}
         onSelectSlot={handleSelectSlot}
+        tooltipAccessor={null}
         components={{
           toolbar: CustomToolbar,
-          // event: CustomEvent
+          event: CustomEvent
         }}
       />
-      {/* <Tooltip id="event-tooltip" /> */}
+      <Tooltip
+        className="custom-tooltip"
+        id="event-tooltip"
+        offset={25} // moves the tooltip up a bit
+      />
       <Dialog open={showModal} onClose={() => setShowModal(false)}>
         <TextField label="Event title" value={newEvent.title} onChange={(e) =>
           setNewEvent((prev) => ({ ...prev, title: e.target.value} ))

@@ -2,13 +2,14 @@ import { useState } from "react";
 import { Box, Typography, IconButton, Modal, Stack, Button } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import type { User } from '../const'
-
+import { logAction } from "../logger"; 
 
 interface Friend {
     friend: User;
 }
 
 const FriendCard: React.FC<Friend> = ({ friend }) => {
+
     const userProfImg = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
 
     const [open, setOpen] = useState(false);
@@ -21,10 +22,14 @@ const FriendCard: React.FC<Friend> = ({ friend }) => {
 
     const handleViewProfile = () => {
         alert("Function not implemented");
+        logAction('error', 'Not Implemented:', 'viewProfile')
+        logAction('info', 'View', 'Friend Profile');
     };
 
     const handleUnfriend = () => {
         alert("Function not implemented");
+        logAction('error', 'Not Implemented:', 'unfriend')
+        logAction('info', 'Unfriend', 'Friend');
     }
 
     return (

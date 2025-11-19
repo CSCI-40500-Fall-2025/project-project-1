@@ -13,6 +13,7 @@ import GroupScheduleEventPage from "./Pages/GroupScheduleEventPage";
 import SchedulePage from "./Pages/SchedulePage";
 import EventPage from "./Pages/EventPage";
 import ProtectedRoute from "./ProtectedRoute";
+import LogViewer from "./logviewer";
 
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
     <>
       <BrowserRouter>
         <Routes>
+          <Route path="/logs" element={<LogViewer/>}/>
           <Route path="/" element={<Layout />}>
             <Route path="login" element={<LoginPage />} />
             <Route path="*" element={<div>404 Not Found</div>} />
