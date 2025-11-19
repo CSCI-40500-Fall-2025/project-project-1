@@ -6,9 +6,7 @@ interface GroupBoxProps {
     group: Group;
 }
 
-
-const GroupBox: React.FC<GroupBoxProps> = ({ group }) => {
-
+const GroupBox = ({ group } : GroupBoxProps) => {
 
     const handleClick = () => {
         alert("Function not implemented");
