@@ -1,5 +1,5 @@
 import type { Calendar, CalendarEvent } from "../const";
-const API_URL = "http://localhost:3000/api";
+const API_URL = "https://project-project-1.onrender.com/api";
 
 export async function getCalendar(): Promise<CalendarEvent[]> {
     const res = await fetch(`${API_URL}/calendar/`, {
