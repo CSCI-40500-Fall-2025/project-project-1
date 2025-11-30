@@ -39,7 +39,7 @@ export default function Gallery() {
             md: 1200, // desktop
           },
           maxHeight: 1000,
-          overflowX: "hidden",
+          overflow: "hidden",
           borderRadius: 2,
           mx: "auto", // centers horizontally
           px: 1, // small inner padding for mobile

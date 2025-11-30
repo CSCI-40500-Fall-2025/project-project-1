@@ -29,51 +29,61 @@ const EventCard = ({ event }: EventCardProps) => {
     <>
       <Card
         sx={{
-          maxWidth: 360,
-          minWidth: 100,
+          display: "flex",
+          flexDirection: "row",
+          width: 300,
+          height: 150,
           borderRadius: 3,
           boxShadow: 3,
           backgroundColor: "#252061ff",
-          height: "100%" ,
+          textAlign: "center",
+          margin: 1,
           cursor: "pointer",
           "&:hover": {
             boxShadow: 6,
+            backgroundColor: "#484663ff",
             transform: "scale(1.05)",
             transition: "transform 0.2s ease, box-shadow 0.2s ease",
           },
         }}
       >
-        <CardActionArea
-          onClick={handleOpen}
-          sx={{ display: "block", height: "100%" }}
-        >
-          <CardContent sx={{ height: "100%" }}>
-            <Box display="flex" alignItems="center" mb={1}>
-              <EventIcon color="primary" sx={{ mr: 1 }} />
-              <Box>
+        <CardActionArea onClick={handleOpen}>
+          <CardContent>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+              }}
+            >
+              <Box sx={{ marginTop: "10px" }}>
+                <EventIcon color="primary" sx={{ mr: 1 }} />
+              </Box>
+
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  textAlign: "center",
+                  marginLeft: '30px'
+                }}
+              >
                 <Typography variant="h6" fontWeight="bold">
                   {event.eventName}
                 </Typography>
+
                 <Typography variant="body2" color="text.secondary">
-                  {event.eventTime}
+                  With the <strong>{event.groupName}</strong>
                 </Typography>
-              </Box>
-            </Box>
-            {event.location && (
-              <Box>
-                <Typography variant="body1" color="text.secondary">
-                  <strong>Meet Us @ </strong> {event.location}
+
+                <Typography variant="body2" color="text.secondary">
+                  @ {event.eventTime}
                 </Typography>
+                {event.location && (
+                  <Typography variant="body1" color="text.secondary">
+                    <strong>@</strong> {event.location}
+                  </Typography>
+                )}
               </Box>
-            )}
-            <Box
-              display="flex"
-              alignItems="center"
-              justifyContent="space-between"
-            >
-              <Typography variant="body2" color="text.secondary">
-                With the <strong>{event.groupName}</strong>
-              </Typography>
             </Box>
           </CardContent>
         </CardActionArea>
@@ -102,7 +112,12 @@ const EventCard = ({ event }: EventCardProps) => {
             <strong>Time:</strong> {event.eventTime}
             <br />
             <strong>Organizer:</strong> {event.organizerName}
-            <strong>Location:</strong> {event.location}
+            <br/>
+            {location && (
+              <>
+                <strong>Location:</strong> {event.location}
+              </>
+            )}
             <br />
             {event.eventDescription}
           </DialogContentText>

@@ -10,11 +10,13 @@ const LoginPage = () => {
     <Box
       sx={{
         display: "flex",
+        flexDirection: 'column',
+        transform: 'translateY(30%)',
         justifyContent: "center",
         alignItems: "center",
-        height: "calc(100vh - 64px)",
         background: "transparent",
         boxShadow: "none",
+        maxHeight: '100vh'
       }}
     >
       {registerAccount ? (
