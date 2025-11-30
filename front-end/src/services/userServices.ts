@@ -1,6 +1,6 @@
 import type { User } from "../const";
 import  { logAction } from "../logger";
-const API_URL = "https://project-project-1.onrender.com/api";
+const API_URL = "https://project-project-1.onrender.com/api"; //"http://localhost:3000/api"//
 
 export async function createUser(
   email: string,

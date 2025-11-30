@@ -29,6 +29,9 @@ const createFakeEvent = (id = "e1", overrides = {}) => ({
   location: "Park",
   event_host: "Alice",
   attendees: 1,
+  start_time: "2025-01-01T18:00:00Z",
+  end_time: "2025-01-01T20:00:00Z",
+  rrule: { freq: -1, interval: 99 },
   ...overrides,
 });
 

@@ -7,9 +7,11 @@ import {
   createEventAndEventParticipants as createEventAndEventParticipantsService,
   getEventById as getEventByIdService,
   getEventAndParticipantsById as getEventAndParticipantsByIdService,
+  getAllEventsForUser as getAllEventsForUserService,
 } from "../services/eventService.js";
 
 export async function getAllEvents(req, res) {
+  console.log("called getAllEvents");
   try {
     const events = await getAllEventsService();
     res.status(200).json(events);
@@ -17,6 +19,84 @@ export async function getAllEvents(req, res) {
     res
       .status(500)
       .json({ error: "Failed to fetch events", details: err.message });
+  }
+}
+
+export async function getAllEventsForUser(req, res) {
+  try {
+    const user_id = req.user.id; 
+    if (!user_id) {
+      return res.status(400).json({ error: "user_id required" });
+    }
+    const events = await getAllEventsForUserService(user_id);
+    if (!events) {
+      return res.status(404).json({ error: "No events found for this user" });
+    }
+    res.status(200).json(events);
+  } catch (err) {
+    console.error("Error fetching events for user:", err);
+    res
+      .status(500)
+      .json({ error: "Failed to fetch events", details: err.message });
+  }
+}
+
+export async function createEvent(req, res) {
+  try {
+    const user = req.user;
+    if (!user || !user.id) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    var {
+      group_id,
+      event_title,
+      event_description,
+      event_datetime,
+      location,
+      event_host,
+      attendees,
+      start_time,
+      end_time,
+      rrule
+    } = req.body;
+
+    if (event_host === undefined || event_host === "") {
+      event_host = user.id;
+    }
+
+    //should remove later, we dont need event_datetime
+    if (event_datetime === undefined || event_datetime === "") {
+      event_datetime = new Date().toISOString();
+    }
+
+    if (
+      !event_title ||
+      !event_host ||
+      !start_time ||
+      !end_time
+    ) {
+      return res.status(400).json({
+        error:
+          "Event title, start time, end time, and host are required",
+      });
+    }
+    const event = await createEventService({
+      group_id,
+      event_title,
+      event_description,
+      event_datetime,
+      location,
+      event_host,
+      attendees: attendees || 1,
+      start_time,
+      end_time,
+      rrule
+    });
+    res.status(201).json(event);
+  } catch (err) {
+    res
+      .status(500)
+      .json({ error: "Failed to create event", details: err.message });
   }
 }
 
@@ -62,50 +142,6 @@ export async function getEventAndParticipantsById(req, res) {
   }
 }
 
-export async function createEvent(req, res) {
-  try {
-    const {
-      group_id,
-      event_title,
-      event_description,
-      event_datetime,
-      location,
-      event_host,
-      attendees,
-    } = req.body;
-
-    if (
-      !group_id ||
-      !event_title ||
-      !event_description ||
-      !event_datetime ||
-      !location ||
-      !event_host
-    ) {
-      return res.status(400).json({
-        error:
-          "Group Id, Event title, description, date, location, and host are required",
-      });
-    }
-
-    const event = await createEventService({
-      group_id,
-      event_title,
-      event_description,
-      event_datetime,
-      location,
-      event_host,
-      attendees: attendees || 1,
-    });
-
-    res.status(201).json(event);
-  } catch (err) {
-    res
-      .status(500)
-      .json({ error: "Failed to create event", details: err.message });
-  }
-}
-
 export async function createEventAndEventParticipants(req, res) {
   try {
     const {
@@ -115,6 +151,9 @@ export async function createEventAndEventParticipants(req, res) {
       event_datetime,
       location,
       event_host,
+      start_time,
+      end_time,
+      rrule
     } = req.body;
 
     if (
@@ -141,6 +180,9 @@ export async function createEventAndEventParticipants(req, res) {
       location,
       event_host,
       attendees,
+      start_time,
+      end_time,
+      rrule
     });
 
     res.status(201).json(event);
@@ -180,6 +222,9 @@ export async function updateEvent(req, res) {
       location,
       event_host,
       attendees,
+      start_time,
+      end_time,
+      rrule
     } = req.body;
 
     if (
@@ -189,7 +234,10 @@ export async function updateEvent(req, res) {
       event_datetime === undefined &&
       location === undefined &&
       event_host === undefined &&
-      attendees === undefined
+      attendees === undefined &&
+      start_time === undefined &&
+      end_time === undefined &&
+      rrule === undefined
     ) {
       return res.status(400).json({
         error: "At least one field is required to update",
@@ -207,6 +255,9 @@ export async function updateEvent(req, res) {
       location,
       event_host,
       attendees,
+      start_time,
+      end_time,
+      rrule
     });
     if (!updatedEvent) {
       return res.status(404).json({ error: "Event not found" });
