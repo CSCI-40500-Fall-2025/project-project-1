@@ -1,7 +1,6 @@
 import Box from "@mui/material/Box";
 import { useAuth } from "../../AuthContext";
 import { Typography } from "@mui/material";
-import Grid from "@mui/material/Grid";
 import type { TodayEvent } from "../../const";
 import EventCard from "../../components/EventCard";
 
@@ -61,16 +60,12 @@ const HomePage = () => {
         display: "flex",
         alignContent: "space-between",
         flexDirection: "column",
-        width: "100%",
-        gap: 2,
       }}
     >
       <Box
         sx={{
           display: "flex",
           flexDirection: "column",
-          gap: 1,
-          flexGrow: 2,
         }}
       >
         <Typography
@@ -92,7 +87,7 @@ const HomePage = () => {
         </Typography>
       </Box>
 
-      <Box sx={{ flexGrow: 1 }}>
+      <Box>
         <Typography
           component="h2"
           variant="h4"
@@ -102,13 +97,28 @@ const HomePage = () => {
         </Typography>
       </Box>
 
-      <Grid container spacing={2}>
-        {todayEvents.map((event) => (
-          <Grid size={3} key={event.eventID}>
-            <EventCard event={event} />
-          </Grid>
-        ))}
-      </Grid>
+      {todayEvents && todayEvents.length > 0 ? (
+        <Box
+          sx={{
+            display: "grid",
+            alignSelf: 'center',
+            maxWidth: '1200px',
+            marginTop: '10px',
+            gridTemplateColumns: {
+              sm: "repeat(1, 1fr)", // small tablets
+              md: "repeat(2, 1fr)", // medium screens
+              lg: "repeat(3, 1fr)", // large screens
+              xl: "repeat(4, 1fr)", // extra large screens
+            },
+          }}
+        >
+          {todayEvents.map((event, index) => (
+            <EventCard key={index} event={event}></EventCard>
+          ))}
+        </Box>
+      ) : (
+        <Typography>No events today {':<'}</Typography>
+      )}
     </Box>
   );
 };

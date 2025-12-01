@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import userRoutes from "./routes/user.js";
-import calendarRoutes from "./routes/calendar.js";
+// import calendarRoutes from "./routes/calendar.js";
 import cookieParser from "cookie-parser";
 import eventRoutes from "./routes/events.js";
 import groupRoutes from "./routes/groups.js";
@@ -34,7 +34,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/user", userRoutes);
-app.use("/api/calendar", calendarRoutes);
+// app.use("/api/calendar", calendarRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/groups", groupRoutes);
 

@@ -1,6 +1,6 @@
 import type { User } from "../const";
-import logAction from "../logger";
-const API_URL = "http://localhost:3000/api";
+import  { logAction } from "../logger";
+const API_URL = "https://project-project-1.onrender.com/api"; //"http://localhost:3000/api"//
 
 export async function createUser(
   email: string,
@@ -23,7 +23,7 @@ export async function createUser(
 
   if (!res.ok) {
     const errMessage = data?.error || "Failed to create user";
-    logAction('error','Create User', 'Failed')
+    logAction('error','Create User', 'Failed');
     throw new Error(errMessage);
   }
 

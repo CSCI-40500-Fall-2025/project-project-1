@@ -1,3 +1,5 @@
+// import type { UUID } from "crypto";
+
 export type User = {
   userID: string;
   username: string;
@@ -5,15 +7,18 @@ export type User = {
 };
 
 export type Event = {
-  eventID: number;
-  eventName: string;
-  eventDate: Date;
-  eventTime: string;
-  eventDescription: string;
-  attendeeIDs: string[];
-  organizerID: string;
-    groupID?: number;
-  location?: string;
+  event_id: string;
+  group_id: string | null;
+  event_title: string;
+  event_description: string | null;
+  location: string | null;
+  event_datetime: string;
+  event_host: string;
+  attendees: number;
+  
+  start_time: Date;  
+  end_time: Date; 
+  rrule: any | null; 
 };
 
 export type TodayEvent = {
@@ -42,6 +47,9 @@ export type CalendarEvent = {
   start: Date; 
   end: Date;  
   rrule?: RecurrenceRule; 
+  originalStart?: Date;
+  originalEnd?: Date;
+  Event: Event;
 };
 
 export type Calendar = {

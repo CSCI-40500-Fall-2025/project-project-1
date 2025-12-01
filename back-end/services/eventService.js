@@ -15,6 +15,23 @@ export async function getEventById(event_id) {
   return rows[0] || null;
 }
 
+export async function getAllEventsForUser(user_id) {
+  const query = `
+  SELECT DISTINCT e.*
+  FROM events e
+  LEFT JOIN event_participants ep
+    ON e.event_id = ep.event_id
+  WHERE e.event_host = $1
+    OR ep.user_id = $1`;
+  try {
+    const rows = await sql.query(query, [user_id]); 
+    return rows || null;
+  } catch (err) {
+    console.error("Error fetching events for user:", err);
+    throw err;
+  }
+}
+
 export async function getEventAndParticipantsById(event_id) {
   const query = `
     SELECT
@@ -51,8 +68,8 @@ export async function createEventAndEventParticipants(eventData) {
 
     const eventResult = await client.query(
       `INSERT INTO events
-      (group_id, event_title, event_description, event_datetime, location, event_host, attendees)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      (group_id, event_title, event_description, event_datetime, location, event_host, attendees, start_time, end_time, rrule)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING *;`,
       [
         eventData.group_id,
@@ -62,6 +79,9 @@ export async function createEventAndEventParticipants(eventData) {
         eventData.location,
         eventData.event_host,
         eventData.attendees,
+        eventData.start_time,
+        eventData.end_time,
+        eventData.rrule,
       ]
     );
 
@@ -91,12 +111,15 @@ export async function createEvent({
   location,
   event_host,
   attendees,
+  start_time,
+  end_time,
+  rrule
 }) {
   const query = `
     INSERT INTO events
-      (group_id, event_title, event_description, event_datetime, location, event_host, attendees)
+      (group_id, event_title, event_description, event_datetime, location, event_host, attendees, start_time, end_time, rrule)
     VALUES
-      ($1, $2, $3, $4, $5, $6, $7)
+      ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
     RETURNING *;
   `;
 
@@ -108,6 +131,9 @@ export async function createEvent({
     location,
     event_host,
     attendees,
+    start_time,
+    end_time,
+    rrule
   ];
 
   const rows = await sql.query(query, values);
@@ -147,6 +173,9 @@ export async function updateEvent(event_id, updateData) {
     "location",
     "event_host",
     "attendees",
+    "start_time",
+    "end_time",
+    "rrule"
   ];
 
   const keys = Object.keys(updateData).filter(

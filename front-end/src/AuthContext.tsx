@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { checkLogin, logoutUser } from "./services/userServices";
 import type { User } from "./const";
+import { logAction } from "./logger";
 
 type AuthContextType = {
   user: User | null;
@@ -31,14 +32,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           userID: data.id,
         };
         setUser(newUser);
+        logAction('info', 'user' , 'logged in');
       } else {
         setUser(null); // invalid or missing data
       }
     } catch (err: unknown) {
       if (err instanceof Error) {
         console.error("Failed to fetch user:", err.message);
+        logAction('error', 'login', 'failed');
       } else {
         console.error("Failed to fetch user:", err);
+        logAction('error', 'login', 'failed');
         setUser(null);
       }
     } finally {

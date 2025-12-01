@@ -1,6 +1,6 @@
 import { sql } from "../db/neon.js";
 
-export async function upsertCalendar(req, res) {
+export async function createCalendarEvent(req, res) {
     try {
         const user_id = req.user.id;
         const calendar_data = req.body;
@@ -26,21 +26,21 @@ export async function upsertCalendar(req, res) {
     }
 }
 
-export async function getCalendar(req, res) {
+export async function getUserEvents(req, res) {
     try{
         const user_id = req.user.id;
         if (!user_id){
             return res.status(400).json({ error: "user_id required" });
         }
         const query = `
-            SELECT calendar_data FROM user_calendars
-            WHERE user_id = $1;
+            SELECT * FROM events
+            WHERE event_host = $1;
         `
         const values = [user_id];
         const result = await sql.query(query, values);
 
         if (result.length === 0) {
-            res.status(404).json({ error: "No calendars found for this user" });
+            res.status(404).json({ error: "No events found for this user" });
         }
         res.status(200).json(result[0].calendar_data);
     } catch (err){
