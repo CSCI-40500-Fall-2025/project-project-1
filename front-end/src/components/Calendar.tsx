@@ -39,6 +39,7 @@ const CustomEvent = ({ event }: { event: CalendarEvent }) => {
     <div style="margin-bottom: 4px;"><strong>Date:</strong> ${moment(event.start).format('MMM D, YYYY')}</div>
     <div style="margin-bottom: 4px;"><strong>Start Time:</strong> ${moment(event.start).format('h:mm A')}</div>
     <div style="margin-bottom: 4px;"><strong>End Time:</strong> ${moment(event.end).format('h:mm A')}</div>
+    ${event.Event && event.Event.event_description ? `<div style="margin-bottom: 6px;"><strong>Description:</strong> ${event.Event.event_description}</div>` : ''}
     <div><strong>Additional Information:</strong> ${event.rrule ? `Repeats ${event.rrule.freq === 1 ? 'daily' : event.rrule.freq === 2 ? 'weekly' : event.rrule.freq === 3 ? 'monthly' : 'custom'} (${event.rrule.count} times)` : 'One-time event'}</div>
   `;
   return (
@@ -50,9 +51,14 @@ const CustomEvent = ({ event }: { event: CalendarEvent }) => {
 
 interface CalendarProps {
   onDateSelect?: (start: Date, end: Date) => void;
+  // external trigger to open the create/edit dialog at a specific slot
+  openAt?: { start: string | Date; end: string | Date } | null;
 }
 
 export default function ReactBigCalendar({ onDateSelect }: CalendarProps = {}) {
+  // Accept openAt prop via rest parameter to keep default signature compatibility
+  const propsAny: any = arguments[0] || {};
+  const openAt = propsAny.openAt as { start: string | Date; end: string | Date } | null | undefined;
   const [eventsData, setEventsData] = useState<CalendarEvent[]>([
     { // Sample event with recurrence 
       start: new Date(2025, 10, 3, 10, 0),
@@ -108,7 +114,30 @@ export default function ReactBigCalendar({ onDateSelect }: CalendarProps = {}) {
       end_time: end,
       rrule: undefined,
     });
+    // notify parent if provided
+    if (onDateSelect) onDateSelect(start, end);
   };
+
+  // When parent provides an `openAt` prop, open the modal at that slot
+  useEffect(() => {
+    if (!openAt) return;
+
+    try {
+      const start = typeof openAt.start === 'string' ? new Date(openAt.start) : openAt.start;
+      const end = typeof openAt.end === 'string' ? new Date(openAt.end) : openAt.end;
+
+      if (start && end && !isNaN(start.getTime()) && !isNaN(end.getTime())) {
+        setNewEvent((prev) => ({
+          ...prev,
+          start_time: start,
+          end_time: end,
+        }));
+        setShowModal(true);
+      }
+    } catch (err) {
+      console.error('Invalid openAt prop provided to Calendar:', err);
+    }
+  }, [openAt]);
 
   const handleSubmit = () => {
     // Editing existing event (new events have no id)
@@ -196,6 +225,7 @@ export default function ReactBigCalendar({ onDateSelect }: CalendarProps = {}) {
       console.error("Failed to load calendar:", err);
     }
   };
+
   //Fetch calendar data on component mount
   useEffect(() => {
     fetchCalendar();
@@ -321,6 +351,7 @@ export default function ReactBigCalendar({ onDateSelect }: CalendarProps = {}) {
         id="event-tooltip"
         offset={25} // moves the tooltip up a bit
       />
+
       <Dialog open={showModal} onClose={() => setShowModal(false)}>
         <TextField label="Event title" value={newEvent.event_title} onChange={(e) =>
           setNewEvent((prev) => ({ 
