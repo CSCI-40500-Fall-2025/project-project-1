@@ -2,18 +2,28 @@ import Box from "@mui/material/Box";
 import ReactBigCalendar from "../../components/Calendar";
 import { TextField, Button } from "@mui/material";
 import React, { useState } from "react";
-import { number } from "motion";
+import moment from "moment";
 
 const FirstPage = () => {
   const [formData, setFormData] = useState({
     group_id: 0,
     event_title: '',
     event_description: '',
-    event_datetime: new Date(),
+    event_datetime: '',
+    event_end_datetime: '',
     location: '',
     event_host: 0,
     attendees: '',
   });
+  
+  const handleDateSelect = (start: Date, end: Date) => {
+    setFormData(prev => ({
+      ...prev,
+      event_datetime: moment(start).format('YYYY-MM-DDTHH:mm'),
+      event_end_datetime: moment(end).format('YYYY-MM-DDTHH:mm'),
+    }));
+  };
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const {name, value} = e.target;
     setFormData(prev => ({
@@ -48,6 +58,8 @@ const FirstPage = () => {
           height: "calc(100vh - 700px)",
           justifyContent: "center",
           alignItems: "center",
+          width: 500,
+          borderRadius: 5,
         }}
         onSubmit={handleSubmit}
       >
@@ -64,10 +76,20 @@ const FirstPage = () => {
           onChange={handleChange}
         />
         <TextField
-          label="Date"
-          name="date"
+          label="Start Date & Time"
+          name="event_datetime"
+          type="datetime-local"
           value={formData.event_datetime}
           onChange={handleChange}
+          InputLabelProps={{ shrink: true }}
+        />
+        <TextField
+          label="End Date & Time"
+          name="event_end_datetime"
+          type="datetime-local"
+          value={formData.event_end_datetime}
+          onChange={handleChange}
+          InputLabelProps={{ shrink: true }}
         />
         <TextField
           label="Location"
@@ -86,7 +108,7 @@ const FirstPage = () => {
           Submit
         </Button>
       </Box>
-      <ReactBigCalendar />
+      <ReactBigCalendar onDateSelect={handleDateSelect} />
     </Box>
 
   );

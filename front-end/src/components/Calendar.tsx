@@ -55,7 +55,11 @@ const CustomEvent = ({ event }: { event: CalendarEvent }) => {
   );
 };
 
-export default function ReactBigCalendar() {
+interface CalendarProps {
+  onDateSelect?: (start: Date, end: Date) => void;
+}
+
+export default function ReactBigCalendar({ onDateSelect }: CalendarProps = {}) {
   const [eventsData, setEventsData] = useState<CalendarEvent[]>([
     { // Sample event with recurrence 
       title: "Weekly Meeting",
@@ -80,6 +84,9 @@ export default function ReactBigCalendar() {
   const handleSelectSlot = ({ start, end }: { start: Date; end: Date }) => {
     setShowModal(true);
     setNewEvent({ title: "", start, end, rrule: undefined });
+    if (onDateSelect) {
+      onDateSelect(start, end);
+    }
   };
 
   const handleSubmit = () => {
@@ -97,7 +104,7 @@ export default function ReactBigCalendar() {
     setEventsData(updatedEvents);
     upsertCalendar(updatedEvents).catch(err => console.error(err));
     setShowModal(false);
-  }
+  };
 
   const handleEditEvent = (clickedEvent: CalendarEvent) => {
     // current just deleting :D
@@ -182,10 +189,30 @@ export default function ReactBigCalendar() {
         id="event-tooltip"
         offset={25} // moves the tooltip up a bit
       />
-      <Dialog open={showModal} onClose={() => setShowModal(false)}>
+      {/* <Dialog open={showModal} onClose={() => setShowModal(false)}>
         <TextField label="Event title" value={newEvent.title} onChange={(e) =>
           setNewEvent((prev) => ({ ...prev, title: e.target.value} ))
         }/>
+        <TextField 
+          label="Start Date & Time" 
+          type="datetime-local"
+          value={moment(newEvent.start).format('YYYY-MM-DDTHH:mm')}
+          onChange={(e) => {
+            const newStart = new Date(e.target.value);
+            setNewEvent((prev) => ({ ...prev, start: newStart }));
+          }}
+          InputLabelProps={{ shrink: true }}
+        />
+        <TextField 
+          label="End Date & Time" 
+          type="datetime-local"
+          value={moment(newEvent.end).format('YYYY-MM-DDTHH:mm')}
+          onChange={(e) => {
+            const newEnd = new Date(e.target.value);
+            setNewEvent((prev) => ({ ...prev, end: newEnd }));
+          }}
+          InputLabelProps={{ shrink: true }}
+        />
         <Select value={newEvent.rrule?.freq || -1} onChange={(e) =>
           setNewEvent((prev) => ({ 
             ...prev, 
@@ -212,7 +239,7 @@ export default function ReactBigCalendar() {
           }))
         }/>
         <Button onClick={handleSubmit}>Add Event</Button>
-      </Dialog>
+      </Dialog> */}
     </div>
     
   );
