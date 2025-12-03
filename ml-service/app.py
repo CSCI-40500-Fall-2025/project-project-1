@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import os
+import joblib
 
 app = Flask(__name__)
 CORS(app)
@@ -12,6 +13,13 @@ class TimeSlotRecommender:
     def __init__(self):
         self.model = None
         self.model_path = 'models/time_slot_model.pkl'
+        # Try to load trained model if available
+        if os.path.exists(self.model_path):
+            try:
+                self.model = joblib.load(self.model_path)
+                print('Loaded ML model from', self.model_path)
+            except Exception as e:
+                print('Failed to load model:', e)
         
     def extract_features(self, events, target_date=None):
         """Extract features from user's event history"""
@@ -94,29 +102,56 @@ class TimeSlotRecommender:
     def score_slots(self, available_slots, preferences):
         """Score available slots based on user preferences"""
         scored_slots = []
-        
+
+        # If a trained model is available, use it to score candidates
+        if self.model is not None:
+            # Build feature matrix rows for each slot
+            rows = []
+            for slot in available_slots:
+                rows.append({
+                    'hour': slot.hour,
+                    'day_of_week': slot.weekday(),
+                    'is_weekend': 1 if slot.weekday() in [5, 6] else 0,
+                    'duration_hours': 1,
+                })
+
+            X = pd.DataFrame(rows)
+            try:
+                probs = self.model.predict_proba(X)[:, 1]
+            except Exception:
+                probs = self.model.predict(X)
+
+            for slot, prob in zip(available_slots, probs):
+                scored_slots.append({
+                    'datetime': slot.isoformat(),
+                    'score': float(prob * 100),
+                    'hour': slot.hour,
+                    'day': slot.strftime('%A'),
+                    'date': slot.strftime('%Y-%m-%d')
+                })
+
+            scored_slots.sort(key=lambda x: x['score'], reverse=True)
+            return scored_slots[:5]
+
+        # Fallback heuristic scoring
         for slot in available_slots:
             score = 0
-            
-            # Preferred hour score
+
             if slot.hour in preferences['preferred_hours']:
                 score += 30
-            
-            # Preferred day score
+
             if slot.weekday() in preferences['preferred_days']:
                 score += 20
-            
-            # Close to average hour score
+
             hour_diff = abs(slot.hour - preferences['avg_hour'])
             score += max(0, 10 - hour_diff)
-            
-            # Weekend preference
+
             is_weekend = slot.weekday() in [5, 6]
             if is_weekend and preferences['weekend_preference'] > 0.3:
                 score += 15
             elif not is_weekend and preferences['weekend_preference'] < 0.3:
                 score += 15
-            
+
             scored_slots.append({
                 'datetime': slot.isoformat(),
                 'score': score,
@@ -124,10 +159,9 @@ class TimeSlotRecommender:
                 'day': slot.strftime('%A'),
                 'date': slot.strftime('%Y-%m-%d')
             })
-        
-        # Sort by score descending
+
         scored_slots.sort(key=lambda x: x['score'], reverse=True)
-        return scored_slots[:5]  # Return top 5 recommendations
+        return scored_slots[:5]
 
 recommender = TimeSlotRecommender()
 

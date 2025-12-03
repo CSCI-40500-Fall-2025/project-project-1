@@ -132,7 +132,7 @@ const FirstPage = () => {
             mb: 2,
           }}
         >
-          {loadingRecommendations ? 'Loading...' : '🤖 Smart Suggest'}
+          {loadingRecommendations ? 'Loading...' : 'Smart Suggest'}
         </Button>
         <TextField
           label="Title"
@@ -189,7 +189,7 @@ const FirstPage = () => {
         fullWidth
       >
         <Box sx={{ p: 3 }}>
-          <h2 style={{ marginTop: 0 }}>🤖 AI-Recommended Time Slots</h2>
+          <h2 style={{ marginTop: 0 }}>Recommended Time Slots</h2>
           {loadingRecommendations ? (
             <p>Analyzing your schedule...</p>
           ) : recommendations.length > 0 ? (
