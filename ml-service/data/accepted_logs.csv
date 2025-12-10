@@ -1,0 +1,5 @@
+start_time,end_time,hour,day_of_week,is_weekend,duration_hours,event_title,event_description,label,timestamp
+2025-12-15T17:31:00.325Z,2025-12-15T18:31:00.325Z,17,0,0,1.0,Trip Planning,Have to plan for Japan trip and book tickets.,1,2025-12-10T13:31:05.075173
+2025-12-15T17:34:08.921Z,2025-12-15T18:34:08.921Z,17,0,0,1.0,Trip Planning,Have to plan for Japan trip and book tickets.,1,2025-12-10T13:34:12.050026
+2025-12-15T17:34:08.921Z,2025-12-15T18:34:08.921Z,17,0,0,1.0,Trip Planning,Have to plan for Japan trip and book tickets.,1,2025-12-10T13:39:51.526847
+2025-12-16T17:40:31.041Z,2025-12-16T18:40:31.041Z,17,1,0,1.0,Trip Planning,Have to plan for Japan trip and book tickets.,1,2025-12-10T13:40:33.197041

@@ -31,6 +31,12 @@ const FirstPage = () => {
   };
 
   const handleGetRecommendations = async () => {
+    // Validate that title is provided
+    if (!formData.event_title || formData.event_title.trim() === '') {
+      alert('Please enter an event title before getting recommendations');
+      return;
+    }
+    
     setLoadingRecommendations(true);
     setShowRecommendations(true);
     
@@ -54,6 +60,8 @@ const FirstPage = () => {
         date_range_start: startDate.toISOString(),
         date_range_end: endDate.toISOString(),
         duration_hours: 1,
+        event_title: formData.event_title,  // Send event title for semantic analysis
+        event_description: formData.event_description,  // Send description for semantic analysis
       });
       
       if (response.success) {
@@ -79,6 +87,64 @@ const FirstPage = () => {
     // Also open the calendar's create-event popout at the selected slot
     setOpenSlot({ start: start.toISOString(), end: end.toISOString() });
     setShowRecommendations(false);
+  };
+
+  const handleAutoCreateEvent = async (recommendation: TimeSlotRecommendation) => {
+    if (!formData.event_title || formData.event_title.trim() === '') {
+      alert('Event title is required');
+      return;
+    }
+
+    try {
+      setLoadingRecommendations(true);
+      const start = new Date(recommendation.datetime);
+      const end = new Date(start.getTime() + 60 * 60 * 1000);
+
+      // Call backend API directly with frontend's authentication
+      const response = await fetch('https://project-project-1.onrender.com/api/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          event_title: formData.event_title,
+          event_description: formData.event_description || '',
+          start_time: start.toISOString(),
+          end_time: end.toISOString(),
+          location: formData.location || '',
+          event_datetime: start.toISOString(),
+          attendees: 1
+        })
+      });
+
+      if (response.ok) {
+        await response.json();
+        alert(`✅ Event "${formData.event_title}" created successfully at ${moment(start).format('MMM D, h:mm A')}!`);
+        setShowRecommendations(false);
+        
+        // Log to ML service for future learning (fire and forget)
+        fetch('http://localhost:5001/api/ml/log-accepted', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event_title: formData.event_title,
+            event_description: formData.event_description || '',
+            start_time: start.toISOString(),
+            end_time: end.toISOString()
+          })
+        }).catch(() => {}); // Ignore errors
+        
+        // Refresh calendar to show new event
+        window.location.reload();
+      } else {
+        const error = await response.json();
+        alert(`Failed to create event: ${error.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Auto-create error:', error);
+      alert('Failed to automatically create event. Please try manual creation.');
+    } finally {
+      setLoadingRecommendations(false);
+    }
   };
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -136,13 +202,13 @@ const FirstPage = () => {
         </Button>
         <TextField
           label="Title"
-          name="title"
+          name="event_title"
           value={formData.event_title}
           onChange={handleChange}
         />
         <TextField
           label="Description"
-          name="description"
+          name="event_description"
           value={formData.event_description}
           onChange={handleChange}
         />
@@ -205,25 +271,42 @@ const FirstPage = () => {
                     mb: 2,
                     border: '1px solid #ddd',
                     borderRadius: 2,
-                    cursor: 'pointer',
-                    '&:hover': {
-                      backgroundColor: '#f5f5f5',
-                    },
                   }}
-                  onClick={() => handleSelectRecommendation(rec)}
                 >
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                     <div>
                       <strong>{rec.day}, {rec.date}</strong>
-                      <div style={{ color: '#666' }}>
+                      <div style={{ color: '#ffffffff' }}>
                         {moment(rec.datetime).format('h:mm A')}
                       </div>
                     </div>
                     <Chip
-                      label={`Score: ${rec.score}`}
+                      label={`Score: ${Math.round(rec.score)}`}
                       color={rec.score > 50 ? 'success' : rec.score > 30 ? 'primary' : 'default'}
                       size="small"
                     />
+                  </Box>
+                  <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => handleSelectRecommendation(rec)}
+                      sx={{ flex: 1 }}
+                    >
+                      Fill Form
+                    </Button>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={() => handleAutoCreateEvent(rec)}
+                      sx={{
+                        flex: 1,
+                        backgroundColor: '#7358d8',
+                        '&:hover': { backgroundColor: '#5a3fb8' }
+                      }}
+                    >
+                      🤖 Auto-Create
+                    </Button>
                   </Box>
                 </Box>
               ))}

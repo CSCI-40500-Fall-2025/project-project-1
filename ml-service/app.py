@@ -5,9 +5,10 @@ import numpy as np
 from datetime import datetime, timedelta
 import os
 import joblib
+import requests
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173", "supports_credentials": True}})
 
 class TimeSlotRecommender:
     def __init__(self):
@@ -99,21 +100,57 @@ class TimeSlotRecommender:
 
         return available_slots
     
-    def score_slots(self, available_slots, preferences):
-        """Score available slots based on user preferences"""
+    def extract_text_features(self, title, description):
+        """Extract semantic features from event title and description"""
+        text = f"{title} {description}".lower()
+        
+        is_meeting = 1 if any(kw in text for kw in ['meeting', 'call', 'sync', 'standup', 'discussion']) else 0
+        is_work = 1 if any(kw in text for kw in ['work', 'project', 'deadline', 'task', 'review']) else 0
+        is_social = 1 if any(kw in text for kw in ['lunch', 'dinner', 'coffee', 'happy hour', 'party']) else 0
+        is_exercise = 1 if any(kw in text for kw in ['gym', 'workout', 'run', 'yoga', 'fitness']) else 0
+        is_personal = 1 if any(kw in text for kw in ['doctor', 'appointment', 'dentist', 'haircut', 'personal']) else 0
+        is_urgent = 1 if any(kw in text for kw in ['urgent', 'asap', 'important', 'critical', 'emergency']) else 0
+        prefers_morning = 1 if any(kw in text for kw in ['morning', 'breakfast', 'early']) else 0
+        prefers_afternoon = 1 if any(kw in text for kw in ['afternoon', 'lunch']) else 0
+        prefers_evening = 1 if any(kw in text for kw in ['evening', 'dinner', 'after work']) else 0
+        
+        title_len = len(title) if pd.notna(title) else 0
+        desc_len = len(description) if pd.notna(description) else 0
+        
+        return {
+            'is_meeting': is_meeting,
+            'is_work': is_work,
+            'is_social': is_social,
+            'is_exercise': is_exercise,
+            'is_personal': is_personal,
+            'is_urgent': is_urgent,
+            'prefers_morning': prefers_morning,
+            'prefers_afternoon': prefers_afternoon,
+            'prefers_evening': prefers_evening,
+            'title_len': min(title_len / 50.0, 1.0),
+            'desc_len': min(desc_len / 200.0, 1.0),
+        }
+    
+    def score_slots(self, available_slots, preferences, event_title="", event_description=""):
+        """Score available slots based on user preferences and event semantics"""
         scored_slots = []
 
         # If a trained model is available, use it to score candidates
         if self.model is not None:
+            # Extract text features once for the event
+            text_features = self.extract_text_features(event_title, event_description)
+            
             # Build feature matrix rows for each slot
             rows = []
             for slot in available_slots:
-                rows.append({
+                row = {
                     'hour': slot.hour,
                     'day_of_week': slot.weekday(),
                     'is_weekend': 1 if slot.weekday() in [5, 6] else 0,
                     'duration_hours': 1,
-                })
+                }
+                row.update(text_features)
+                rows.append(row)
 
             X = pd.DataFrame(rows)
             try:
@@ -168,7 +205,7 @@ recommender = TimeSlotRecommender()
 @app.route('/api/ml/recommend-timeslots', methods=['POST'])
 def recommend_timeslots():
     """
-    Recommend optimal time slots for a new event
+    Recommend optimal time slots for a new event based on availability and event semantics
     
     Expected JSON body:
     {
@@ -176,7 +213,9 @@ def recommend_timeslots():
         "existing_events": [...],  // User's event history
         "date_range_start": "2025-12-01T00:00:00",
         "date_range_end": "2025-12-07T23:59:59",
-        "duration_hours": 1
+        "duration_hours": 1,
+        "event_title": "Meeting",  // NEW: event title for semantic analysis
+        "event_description": "Team sync"  // NEW: event description for semantic analysis
     }
     """
     try:
@@ -186,6 +225,8 @@ def recommend_timeslots():
         date_range_start = datetime.fromisoformat(data['date_range_start'])
         date_range_end = datetime.fromisoformat(data['date_range_end'])
         duration_hours = data.get('duration_hours', 1)
+        event_title = data.get('event_title', '')
+        event_description = data.get('event_description', '')
         
         # Extract user preferences from history
         if existing_events:
@@ -207,13 +248,15 @@ def recommend_timeslots():
             duration_hours
         )
         
-        # Score and rank slots
-        recommendations = recommender.score_slots(available_slots, preferences)
+        # Score and rank slots using event semantics
+        recommendations = recommender.score_slots(available_slots, preferences, event_title, event_description)
         
         return jsonify({
             'success': True,
             'recommendations': recommendations,
-            'preferences_used': preferences
+            'preferences_used': preferences,
+            'event_title': event_title,
+            'event_description': event_description
         })
         
     except Exception as e:
@@ -222,17 +265,190 @@ def recommend_timeslots():
             'error': str(e)
         }), 500
 
+@app.route('/api/ml/create-event', methods=['POST'])
+def create_event_from_recommendation():
+    """
+    Automatically create an event based on ML recommendation
+    Takes action on behalf of the user by calling the backend API
+    
+    Expected JSON body:
+    {
+        "event_title": "string",
+        "event_description": "string",
+        "start_time": "2025-12-01T10:00:00",
+        "end_time": "2025-12-01T11:00:00",
+        "location": "string (optional)",
+        "backend_api_url": "https://project-project-1.onrender.com/api",
+        "auth_cookie": "session cookie for authentication"
+    }
+    """
+    try:
+        data = request.json
+        print(f"[AUTO-CREATE] Received request: {data}")
+        event_title = data.get('event_title')
+        event_description = data.get('event_description')
+        start_time = data.get('start_time')
+        end_time = data.get('end_time')
+        location = data.get('location', '')
+        backend_api_url = data.get('backend_api_url', 'https://project-project-1.onrender.com/api')
+        
+        if not all([event_title, start_time, end_time]):
+            return jsonify({
+                'success': False,
+                'error': 'Missing required fields: event_title, start_time, end_time'
+            }), 400
+        
+        # Log the accepted recommendation for future model training
+        log_file = os.path.join('data', 'accepted_logs.csv')
+        start_dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+        log_entry = {
+            'start_time': start_time,
+            'end_time': end_time,
+            'hour': start_dt.hour,
+            'day_of_week': start_dt.weekday(),
+            'is_weekend': 1 if start_dt.weekday() in [5, 6] else 0,
+            'duration_hours': (datetime.fromisoformat(end_time.replace('Z', '+00:00')) - start_dt).seconds / 3600,
+            'event_title': event_title,
+            'event_description': event_description or '',
+            'label': 1,
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        # Append to log file (create if doesn't exist)
+        log_df = pd.DataFrame([log_entry])
+        if os.path.exists(log_file):
+            log_df.to_csv(log_file, mode='a', header=False, index=False)
+        else:
+            log_df.to_csv(log_file, mode='w', header=True, index=False)
+        
+        # Call backend API to create the event
+        event_payload = {
+            'event_title': event_title,
+            'event_description': event_description,
+            'start_time': start_time,
+            'end_time': end_time,
+            'location': location,
+            'event_datetime': start_time,  # for backward compatibility
+            'attendees': 1
+        }
+        
+        # Get cookies from request headers if present
+        cookies = {}
+        if 'Cookie' in request.headers:
+            cookie_header = request.headers.get('Cookie')
+            for cookie in cookie_header.split(';'):
+                if '=' in cookie:
+                    key, val = cookie.strip().split('=', 1)
+                    cookies[key] = val
+        
+        print(f"[AUTO-CREATE] Calling backend: {backend_api_url}/events")
+        print(f"[AUTO-CREATE] Payload: {event_payload}")
+        print(f"[AUTO-CREATE] Cookies: {cookies}")
+        
+        # The backend expects cookies, not Authorization header
+        headers = {'Content-Type': 'application/json'}
+        
+        response = requests.post(
+            f"{backend_api_url}/events",
+            json=event_payload,
+            cookies=cookies,
+            headers=headers,
+            timeout=10
+        )
+        
+        print(f"[AUTO-CREATE] Response status: {response.status_code}")
+        print(f"[AUTO-CREATE] Response body: {response.text}")
+        print(f"[AUTO-CREATE] Response headers: {dict(response.headers)}")
+        
+        if response.status_code in [200, 201]:
+            return jsonify({
+                'success': True,
+                'message': 'Event created successfully',
+                'event': response.json()
+            })
+        else:
+            # Return detailed error to help debug
+            error_msg = f'Backend API error: {response.status_code}'
+            try:
+                error_detail = response.json()
+            except:
+                error_detail = response.text
+            
+            print(f"[AUTO-CREATE] Error detail: {error_detail}")
+            return jsonify({
+                'success': False,
+                'error': error_msg,
+                'details': error_detail
+            }), response.status_code
+            
+    except Exception as e:
+        print(f"[AUTO-CREATE] Exception: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/ml/log-accepted', methods=['POST'])
+def log_accepted_recommendation():
+    """
+    Log an accepted recommendation for future model training
+    Frontend calls this after successfully creating an event
+    """
+    try:
+        data = request.get_json()
+        event_title = data.get('event_title', '')
+        event_description = data.get('event_description', '')
+        start_time = data.get('start_time')
+        end_time = data.get('end_time')
+        
+        if not start_time or not end_time:
+            return jsonify({'success': False, 'error': 'Missing time data'}), 400
+        
+        # Parse times
+        start_dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+        
+        # Log for future training
+        log_file = 'data/accepted_logs.csv'
+        log_entry = {
+            'start_time': start_time,
+            'end_time': end_time,
+            'hour': start_dt.hour,
+            'day_of_week': start_dt.weekday(),
+            'is_weekend': 1 if start_dt.weekday() in [5, 6] else 0,
+            'duration_hours': (datetime.fromisoformat(end_time.replace('Z', '+00:00')) - start_dt).seconds / 3600,
+            'event_title': event_title,
+            'event_description': event_description,
+            'label': 1,
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        log_df = pd.DataFrame([log_entry])
+        if os.path.exists(log_file):
+            log_df.to_csv(log_file, mode='a', header=False, index=False)
+        else:
+            log_df.to_csv(log_file, mode='w', header=True, index=False)
+        
+        print(f"[LOG] Logged accepted event: {event_title} at {start_time}")
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        print(f"[LOG] Error: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/ml/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
     return jsonify({
         'status': 'healthy',
-        'service': 'ML Time Slot Recommender'
+        'service': 'ML Time Slot Recommender with Auto-Create'
     })
 
 if __name__ == '__main__':
-    # Create models directory if it doesn't exist
+    # Create necessary directories
     os.makedirs('models', exist_ok=True)
+    os.makedirs('data', exist_ok=True)
     
     # Run the app
     app.run(host='0.0.0.0', port=5001, debug=True)

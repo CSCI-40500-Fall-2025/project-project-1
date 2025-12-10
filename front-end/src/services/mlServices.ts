@@ -21,6 +21,24 @@ export interface RecommendTimeSlotsRequest {
   date_range_start: string;
   date_range_end: string;
   duration_hours?: number;
+  event_title?: string;  // NEW: for semantic analysis
+  event_description?: string;  // NEW: for semantic analysis
+}
+
+export interface CreateEventRequest {
+  event_title: string;
+  event_description: string;
+  start_time: string;
+  end_time: string;
+  location?: string;
+  backend_api_url?: string;
+}
+
+export interface CreateEventResponse {
+  success: boolean;
+  message?: string;
+  event?: any;
+  error?: string;
 }
 
 export interface RecommendTimeSlotsResponse {
@@ -52,6 +70,29 @@ export async function getTimeSlotRecommendations(
     return await res.json();
   } catch (error) {
     console.error("Error getting recommendations:", error);
+    throw error;
+  }
+}
+
+export async function createEventFromRecommendation(
+  request: CreateEventRequest
+): Promise<CreateEventResponse> {
+  try {
+    const res = await fetch(`${API_URL}/ml/create-event`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",  // send cookies for auth
+      body: JSON.stringify(request),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.error || "Failed to create event");
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("Error creating event from recommendation:", error);
     throw error;
   }
 }

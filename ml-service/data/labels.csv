@@ -1,11 +1,16 @@
-start_time,end_time,hour,day_of_week,is_weekend,duration_hours,label
-2025-11-24T10:00:00,2025-11-24T11:00:00,10,0,0,1,1
-2025-11-25T14:00:00,2025-11-25T15:00:00,14,1,0,1,1
-2025-11-26T09:00:00,2025-11-26T10:00:00,9,2,0,1,0
-2025-11-27T16:00:00,2025-11-27T17:00:00,16,3,0,1,1
-2025-11-28T11:00:00,2025-11-28T12:00:00,11,4,0,1,0
-2025-11-29T15:00:00,2025-11-29T16:00:00,15,5,1,1,1
-2025-11-30T13:00:00,2025-11-30T14:00:00,13,6,1,1,0
-2025-12-01T09:00:00,2025-12-01T10:00:00,9,0,0,1,1
-2025-12-02T10:00:00,2025-12-02T11:00:00,10,1,0,1,1
-2025-12-02T15:00:00,2025-12-02T16:00:00,15,1,0,1,0
+start_time,end_time,hour,day_of_week,is_weekend,duration_hours,event_title,event_description,label
+2025-11-24T10:00:00,2025-11-24T11:00:00,10,0,0,1,Team Meeting,Weekly sync with the team,1
+2025-11-25T14:00:00,2025-11-25T15:00:00,14,1,0,1,Project Review,Review project deliverables and timeline,1
+2025-11-26T09:00:00,2025-11-26T10:00:00,9,2,0,1,Morning Standup,Daily standup meeting,0
+2025-11-27T16:00:00,2025-11-27T17:00:00,16,3,0,1,Dentist Appointment,Personal dental checkup,1
+2025-11-28T11:00:00,2025-11-28T12:00:00,11,4,0,1,Lunch with Client,Discuss new partnership,0
+2025-11-29T15:00:00,2025-11-29T16:00:00,15,5,1,1,Gym Workout,Afternoon fitness session,1
+2025-11-30T13:00:00,2025-11-30T14:00:00,13,6,1,1,Coffee Chat,Casual coffee with friend,0
+2025-12-01T09:00:00,2025-12-01T10:00:00,9,0,0,1,Morning Call,Early standup call,1
+2025-12-02T10:00:00,2025-12-02T11:00:00,10,1,0,1,Team Meeting,Weekly team sync,1
+2025-12-02T15:00:00,2025-12-02T16:00:00,15,1,0,1,Urgent Task,Critical deadline work,0
+2025-12-03T12:00:00,2025-12-03T13:00:00,12,2,0,1,Lunch Meeting,Working lunch with manager,1
+2025-12-04T18:00:00,2025-12-04T19:00:00,18,3,0,1,Dinner Party,Evening social event,1
+2025-12-05T07:00:00,2025-12-05T08:00:00,7,4,0,1,Morning Yoga,Early morning yoga class,0
+2025-12-06T14:00:00,2025-12-06T15:00:00,14,5,1,1,Doctor Appointment,Annual checkup,1
+2025-12-07T11:00:00,2025-12-07T12:00:00,11,6,1,1,Brunch,Weekend brunch,1
