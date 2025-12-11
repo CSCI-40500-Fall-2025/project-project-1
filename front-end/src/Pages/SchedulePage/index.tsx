@@ -1,6 +1,6 @@
 import Box from "@mui/material/Box";
 import ReactBigCalendar from "../../components/Calendar";
-import { TextField, Button, Dialog, Alert, Chip } from "@mui/material";
+import { TextField, Button } from "@mui/material";
 import React, { useState } from "react";
 import moment from "moment";
 import { getTimeSlotRecommendations, type TimeSlotRecommendation } from "../../services/mlServices";
@@ -17,8 +17,6 @@ const FirstPage = () => {
     event_host: 0,
     attendees: '',
   });
-  const [recommendations, setRecommendations] = useState<TimeSlotRecommendation[]>([]);
-  const [showRecommendations, setShowRecommendations] = useState(false);
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const [openSlot, setOpenSlot] = useState<{ start: string; end: string } | null>(null);
   
@@ -38,7 +36,6 @@ const FirstPage = () => {
     }
     
     setLoadingRecommendations(true);
-    setShowRecommendations(true);
     
     try {
       const startDate = new Date();
@@ -64,30 +61,22 @@ const FirstPage = () => {
         event_description: formData.event_description,  // Send description for semantic analysis
       });
       
-      if (response.success) {
-        setRecommendations(response.recommendations);
+      if (response.success && response.recommendations.length > 0) {
+        // Automatically create event with the best recommendation (highest score)
+        const bestRecommendation = response.recommendations[0];
+        await handleAutoCreateEvent(bestRecommendation);
+      } else {
+        alert('No available time slots found. Please try a different date range.');
       }
     } catch (error) {
       console.error("Failed to get recommendations:", error);
-      setRecommendations([]);
+      alert('Failed to schedule event. Please try again.');
     } finally {
       setLoadingRecommendations(false);
     }
   };
 
-  const handleSelectRecommendation = (recommendation: TimeSlotRecommendation) => {
-    const start = new Date(recommendation.datetime);
-    const end = new Date(start.getTime() + 60 * 60 * 1000);
-    
-    setFormData(prev => ({
-      ...prev,
-      event_datetime: moment(start).format('YYYY-MM-DDTHH:mm'),
-      event_end_datetime: moment(end).format('YYYY-MM-DDTHH:mm'),
-    }));
-    // Also open the calendar's create-event popout at the selected slot
-    setOpenSlot({ start: start.toISOString(), end: end.toISOString() });
-    setShowRecommendations(false);
-  };
+
 
   const handleAutoCreateEvent = async (recommendation: TimeSlotRecommendation) => {
     if (!formData.event_title || formData.event_title.trim() === '') {
@@ -98,7 +87,9 @@ const FirstPage = () => {
     try {
       setLoadingRecommendations(true);
       const start = new Date(recommendation.datetime);
-      const end = new Date(start.getTime() + 60 * 60 * 1000);
+      // Use the ML-predicted duration
+      const durationHours = recommendation.duration_hours || 1;
+      const end = new Date(start.getTime() + durationHours * 60 * 60 * 1000);
 
       // Call backend API directly with frontend's authentication
       const response = await fetch('https://project-project-1.onrender.com/api/events', {
@@ -119,7 +110,6 @@ const FirstPage = () => {
       if (response.ok) {
         await response.json();
         alert(`✅ Event "${formData.event_title}" created successfully at ${moment(start).format('MMM D, h:mm A')}!`);
-        setShowRecommendations(false);
         
         // Log to ML service for future learning (fire and forget)
         fetch('http://localhost:5001/api/ml/log-accepted', {
@@ -198,7 +188,7 @@ const FirstPage = () => {
             mb: 2,
           }}
         >
-          {loadingRecommendations ? 'Loading...' : 'Smart Suggest'}
+          {loadingRecommendations ? 'Creating Event...' : 'Smart Schedule'}
         </Button>
         <TextField
           label="Title"
@@ -246,81 +236,6 @@ const FirstPage = () => {
         </Button>
       </Box>
       <ReactBigCalendar onDateSelect={handleDateSelect} openAt={openSlot} />
-      
-      {/* ML Recommendations Dialog */}
-      <Dialog 
-        open={showRecommendations} 
-        onClose={() => setShowRecommendations(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <Box sx={{ p: 3 }}>
-          <h2 style={{ marginTop: 0 }}>Recommended Time Slots</h2>
-          {loadingRecommendations ? (
-            <p>Analyzing your schedule...</p>
-          ) : recommendations.length > 0 ? (
-            <>
-              <Alert severity="info" sx={{ mb: 2 }}>
-                Based on your scheduling patterns, here are the best available times:
-              </Alert>
-              {recommendations.map((rec, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    p: 2,
-                    mb: 2,
-                    border: '1px solid #ddd',
-                    borderRadius: 2,
-                  }}
-                >
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                    <div>
-                      <strong>{rec.day}, {rec.date}</strong>
-                      <div style={{ color: '#ffffffff' }}>
-                        {moment(rec.datetime).format('h:mm A')}
-                      </div>
-                    </div>
-                    <Chip
-                      label={`Score: ${Math.round(rec.score)}`}
-                      color={rec.score > 50 ? 'success' : rec.score > 30 ? 'primary' : 'default'}
-                      size="small"
-                    />
-                  </Box>
-                  <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      onClick={() => handleSelectRecommendation(rec)}
-                      sx={{ flex: 1 }}
-                    >
-                      Fill Form
-                    </Button>
-                    <Button
-                      variant="contained"
-                      size="small"
-                      onClick={() => handleAutoCreateEvent(rec)}
-                      sx={{
-                        flex: 1,
-                        backgroundColor: '#7358d8',
-                        '&:hover': { backgroundColor: '#5a3fb8' }
-                      }}
-                    >
-                      🤖 Auto-Create
-                    </Button>
-                  </Box>
-                </Box>
-              ))}
-            </>
-          ) : (
-            <Alert severity="warning">
-              No recommendations available. Try adjusting your date range.
-            </Alert>
-          )}
-          <Button onClick={() => setShowRecommendations(false)} sx={{ mt: 2 }}>
-            Close
-          </Button>
-        </Box>
-      </Dialog>
     </Box>
 
   );

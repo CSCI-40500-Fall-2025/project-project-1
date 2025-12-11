@@ -106,7 +106,46 @@ print("Evaluating model...")
 y_pred = clf.predict(X_test)
 print(classification_report(y_test, y_pred))
 
-print(f"Saving model to {MODEL_PATH}...")
+print(f"Saving time slot model to {MODEL_PATH}...")
 joblib.dump(clf, MODEL_PATH)
 
-print("Done.")
+# Train a separate model for duration prediction
+print("\n" + "="*50)
+print("Training duration prediction model...")
+print("="*50)
+
+DURATION_MODEL_PATH = os.path.join(MODEL_DIR, 'duration_model.pkl')
+
+# Use only text features + historical duration for duration prediction
+X_duration = text_features_df.copy()
+y_duration = df['duration_hours'].fillna(1.0).astype(float)
+
+print(f"Training duration model with {len(X_duration.columns)} features")
+print(f"Duration range: {y_duration.min():.1f} to {y_duration.max():.1f} hours")
+
+X_dur_train, X_dur_test, y_dur_train, y_dur_test = train_test_split(
+    X_duration, y_duration, test_size=0.2, random_state=42
+)
+
+# Use regression for duration prediction
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_absolute_error, r2_score
+
+dur_model = RandomForestRegressor(n_estimators=50, max_depth=5, random_state=42)
+dur_model.fit(X_dur_train, y_dur_train)
+
+y_dur_pred = dur_model.predict(X_dur_test)
+mae = mean_absolute_error(y_dur_test, y_dur_pred)
+r2 = r2_score(y_dur_test, y_dur_pred)
+
+print(f"\nDuration Model Performance:")
+print(f"  Mean Absolute Error: {mae:.2f} hours")
+print(f"  R² Score: {r2:.3f}")
+print(f"\nExample predictions:")
+for i in range(min(5, len(X_dur_test))):
+    print(f"  Actual: {y_dur_test.iloc[i]:.1f}h, Predicted: {y_dur_pred[i]:.1f}h")
+
+print(f"\nSaving duration model to {DURATION_MODEL_PATH}...")
+joblib.dump(dur_model, DURATION_MODEL_PATH)
+
+print("\nDone. Both models trained successfully!")

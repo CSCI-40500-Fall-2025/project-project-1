@@ -13,14 +13,25 @@ CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173", "supports_c
 class TimeSlotRecommender:
     def __init__(self):
         self.model = None
+        self.duration_model = None
         self.model_path = 'models/time_slot_model.pkl'
-        # Try to load trained model if available
+        self.duration_model_path = 'models/duration_model.pkl'
+        
+        # Try to load trained time slot model if available
         if os.path.exists(self.model_path):
             try:
                 self.model = joblib.load(self.model_path)
-                print('Loaded ML model from', self.model_path)
+                print('Loaded time slot model from', self.model_path)
             except Exception as e:
-                print('Failed to load model:', e)
+                print('Failed to load time slot model:', e)
+        
+        # Try to load trained duration model if available
+        if os.path.exists(self.duration_model_path):
+            try:
+                self.duration_model = joblib.load(self.duration_model_path)
+                print('Loaded duration model from', self.duration_model_path)
+            except Exception as e:
+                print('Failed to load duration model:', e)
         
     def extract_features(self, events, target_date=None):
         """Extract features from user's event history"""
@@ -100,6 +111,121 @@ class TimeSlotRecommender:
 
         return available_slots
     
+    def predict_duration_from_history(self, title, description, existing_events):
+        """Predict duration by analyzing similar past events from user's history"""
+        if not existing_events:
+            return None
+        
+        # Normalize the search text
+        search_text = f"{title} {description}".lower().strip()
+        search_words = set(search_text.split())
+        
+        # Find similar past events
+        similar_events = []
+        for event in existing_events:
+            event_title = str(event.get('event_title', '')).lower()
+            event_desc = str(event.get('event_description', '')).lower() if event.get('event_description') else ''
+            event_text = f"{event_title} {event_desc}"
+            event_words = set(event_text.split())
+            
+            # Calculate word overlap similarity
+            if search_words and event_words:
+                overlap = len(search_words & event_words)
+                similarity = overlap / len(search_words)
+                
+                # Consider it similar if >30% word overlap
+                if similarity > 0.3:
+                    # Calculate actual duration from past event
+                    if 'start_time' in event and 'end_time' in event:
+                        try:
+                            start = pd.to_datetime(event['start_time'])
+                            end = pd.to_datetime(event['end_time'])
+                            duration = (end - start).total_seconds() / 3600
+                            similar_events.append({
+                                'title': event_title,
+                                'duration': duration,
+                                'similarity': similarity
+                            })
+                        except:
+                            pass
+        
+        if similar_events:
+            # Weight durations by similarity and take weighted average
+            total_weight = sum(e['similarity'] for e in similar_events)
+            weighted_duration = sum(e['duration'] * e['similarity'] for e in similar_events) / total_weight
+            
+            # Round to nearest 0.5 hours
+            predicted = round(weighted_duration * 2) / 2
+            predicted = max(0.5, min(8.0, predicted))  # Clamp to 0.5-8 hours
+            
+            print(f"[DURATION-HISTORY] Found {len(similar_events)} similar events, predicted {predicted}h")
+            sample_events = ', '.join([f"{e['title'][:30]}({e['duration']:.1f}h)" for e in similar_events[:3]])
+            print(f"[DURATION-HISTORY] Similar events: {sample_events}")
+            return predicted
+        
+        return None
+    
+    def predict_duration(self, title, description, existing_events=None):
+        """Predict event duration based on user history, trained model, or heuristics"""
+        # Priority 1: Learn from user's actual history of similar events
+        if existing_events:
+            historical_duration = self.predict_duration_from_history(title, description, existing_events)
+            if historical_duration is not None:
+                return historical_duration
+        
+        # Priority 2: Use trained ML model if available
+        if self.duration_model is not None:
+            try:
+                text_features = self.extract_text_features(title, description)
+                import pandas as pd
+                X = pd.DataFrame([text_features])
+                predicted_duration = self.duration_model.predict(X)[0]
+                # Clamp to reasonable range (0.5 to 8 hours) and round to nearest 0.5
+                predicted_duration = max(0.5, min(8.0, predicted_duration))
+                predicted_duration = round(predicted_duration * 2) / 2  # Round to nearest 0.5
+                print(f"[DURATION-ML] Predicted {predicted_duration}h using trained model")
+                return predicted_duration
+            except Exception as e:
+                print(f"[DURATION-ML] Model prediction failed: {e}, falling back to heuristics")
+        
+        # Fallback to rule-based heuristics if model not available
+        text = f"{title} {description}".lower()
+        
+        # Quick meetings/standups: 15-30 minutes
+        if any(kw in text for kw in ['standup', 'quick', 'brief', 'check-in', 'touch base']):
+            return 0.5  # 30 minutes
+        
+        # Coffee/quick meals: 30 minutes - 1 hour
+        if any(kw in text for kw in ['coffee', 'breakfast', 'brunch']):
+            return 1.0
+        
+        # Standard meetings: 1 hour
+        if any(kw in text for kw in ['meeting', 'call', 'sync', 'discussion', 'review']):
+            return 1.0
+        
+        # Lunch/dinner: 1-1.5 hours
+        if any(kw in text for kw in ['lunch', 'dinner']):
+            return 1.5
+        
+        # Medical appointments: 1-2 hours (includes travel/wait time)
+        if any(kw in text for kw in ['doctor', 'dentist', 'appointment', 'medical', 'checkup']):
+            return 2.0
+        
+        # Workout/exercise: 1-1.5 hours
+        if any(kw in text for kw in ['gym', 'workout', 'exercise', 'yoga', 'fitness', 'run']):
+            return 1.5
+        
+        # Work sessions/focus time: 2-3 hours
+        if any(kw in text for kw in ['work session', 'focus', 'deep work', 'coding', 'writing']):
+            return 2.5
+        
+        # Planning/strategy: 2 hours
+        if any(kw in text for kw in ['planning', 'strategy', 'brainstorm', 'workshop']):
+            return 2.0
+        
+        # Default: 1 hour
+        return 1.0
+    
     def extract_text_features(self, title, description):
         """Extract semantic features from event title and description"""
         text = f"{title} {description}".lower()
@@ -131,7 +257,7 @@ class TimeSlotRecommender:
             'desc_len': min(desc_len / 200.0, 1.0),
         }
     
-    def score_slots(self, available_slots, preferences, event_title="", event_description=""):
+    def score_slots(self, available_slots, preferences, event_title="", event_description="", duration_hours=1.0):
         """Score available slots based on user preferences and event semantics"""
         scored_slots = []
 
@@ -147,7 +273,7 @@ class TimeSlotRecommender:
                     'hour': slot.hour,
                     'day_of_week': slot.weekday(),
                     'is_weekend': 1 if slot.weekday() in [5, 6] else 0,
-                    'duration_hours': 1,
+                    'duration_hours': duration_hours,
                 }
                 row.update(text_features)
                 rows.append(row)
@@ -164,7 +290,8 @@ class TimeSlotRecommender:
                     'score': float(prob * 100),
                     'hour': slot.hour,
                     'day': slot.strftime('%A'),
-                    'date': slot.strftime('%Y-%m-%d')
+                    'date': slot.strftime('%Y-%m-%d'),
+                    'duration_hours': duration_hours
                 })
 
             scored_slots.sort(key=lambda x: x['score'], reverse=True)
@@ -194,7 +321,8 @@ class TimeSlotRecommender:
                 'score': score,
                 'hour': slot.hour,
                 'day': slot.strftime('%A'),
-                'date': slot.strftime('%Y-%m-%d')
+                'date': slot.strftime('%Y-%m-%d'),
+                'duration_hours': duration_hours
             })
 
         scored_slots.sort(key=lambda x: x['score'], reverse=True)
@@ -224,9 +352,12 @@ def recommend_timeslots():
         existing_events = data.get('existing_events', [])
         date_range_start = datetime.fromisoformat(data['date_range_start'])
         date_range_end = datetime.fromisoformat(data['date_range_end'])
-        duration_hours = data.get('duration_hours', 1)
         event_title = data.get('event_title', '')
         event_description = data.get('event_description', '')
+        
+        # Predict duration based on user's history of similar events
+        duration_hours = recommender.predict_duration(event_title, event_description, existing_events)
+        print(f"[DURATION] Predicted {duration_hours} hours for '{event_title}'")
         
         # Extract user preferences from history
         if existing_events:
@@ -249,14 +380,15 @@ def recommend_timeslots():
         )
         
         # Score and rank slots using event semantics
-        recommendations = recommender.score_slots(available_slots, preferences, event_title, event_description)
+        recommendations = recommender.score_slots(available_slots, preferences, event_title, event_description, duration_hours)
         
         return jsonify({
             'success': True,
             'recommendations': recommendations,
             'preferences_used': preferences,
             'event_title': event_title,
-            'event_description': event_description
+            'event_description': event_description,
+            'predicted_duration_hours': duration_hours
         })
         
     except Exception as e:

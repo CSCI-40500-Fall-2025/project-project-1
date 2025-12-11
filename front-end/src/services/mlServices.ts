@@ -6,6 +6,7 @@ export interface TimeSlotRecommendation {
   hour: number;
   day: string;
   date: string;
+  duration_hours?: number;
 }
 
 export interface RecommendTimeSlotsRequest {
@@ -50,6 +51,7 @@ export interface RecommendTimeSlotsResponse {
     avg_hour: number;
     weekend_preference: number;
   };
+  predicted_duration_hours?: number;
   error?: string;
 }
 
