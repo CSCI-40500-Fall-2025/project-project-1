@@ -6,7 +6,7 @@ import userRoutes from "./routes/user.js";
 import cookieParser from "cookie-parser";
 import eventRoutes from "./routes/events.js";
 import groupRoutes from "./routes/groups.js";
-
+import { swaggerSpec, swaggerUi } from "./swagger.js";
 // import functions from "firebase-functions";
 
 dotenv.config();
@@ -27,6 +27,8 @@ app.use(
 
 app.use(express.json()); // parse JSON request body
 app.use(cookieParser()); // parse cookies
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
 app.get("/", (req, res) => {

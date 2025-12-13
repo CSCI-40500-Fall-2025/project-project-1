@@ -34,7 +34,6 @@ const Navbar = ({ loggedIn, logOut }: NavbarProps) => {
             aria-label="menu"
             sx={{ mr: 2 }}
           >
-            <MenuIcon />
           </IconButton>
           <Typography
             variant="h6"

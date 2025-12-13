@@ -24,7 +24,7 @@ export async function getAllEvents(req, res) {
 
 export async function getAllEventsForUser(req, res) {
   try {
-    const user_id = req.user.id; 
+    const user_id = req.user.id;
     if (!user_id) {
       return res.status(400).json({ error: "user_id required" });
     }
@@ -57,7 +57,7 @@ export async function createEvent(req, res) {
       attendees,
       start_time,
       end_time,
-      rrule
+      rrule,
     } = req.body;
 
     if (event_host === undefined || event_host === "") {
@@ -69,15 +69,9 @@ export async function createEvent(req, res) {
       event_datetime = new Date().toISOString();
     }
 
-    if (
-      !event_title ||
-      !event_host ||
-      !start_time ||
-      !end_time
-    ) {
+    if (!event_title || !event_host || !start_time || !end_time) {
       return res.status(400).json({
-        error:
-          "Event title, start time, end time, and host are required",
+        error: "Event title, start time, end time, and host are required",
       });
     }
     const event = await createEventService({
@@ -90,7 +84,7 @@ export async function createEvent(req, res) {
       attendees: attendees || 1,
       start_time,
       end_time,
-      rrule
+      rrule,
     });
     res.status(201).json(event);
   } catch (err) {
@@ -153,7 +147,7 @@ export async function createEventAndEventParticipants(req, res) {
       event_host,
       start_time,
       end_time,
-      rrule
+      rrule,
     } = req.body;
 
     if (
@@ -182,7 +176,7 @@ export async function createEventAndEventParticipants(req, res) {
       attendees,
       start_time,
       end_time,
-      rrule
+      rrule,
     });
 
     res.status(201).json(event);
@@ -224,7 +218,7 @@ export async function updateEvent(req, res) {
       attendees,
       start_time,
       end_time,
-      rrule
+      rrule,
     } = req.body;
 
     if (
@@ -257,7 +251,7 @@ export async function updateEvent(req, res) {
       attendees,
       start_time,
       end_time,
-      rrule
+      rrule,
     });
     if (!updatedEvent) {
       return res.status(404).json({ error: "Event not found" });
