@@ -10,5 +10,6 @@ const router = Router();
 router.get("/", getGroups);
 router.post("/", createGroup);
 router.post("/join", joinGroupByInviteCode);
+//router.post("/leave", leaveGroup);
 
 export default router;

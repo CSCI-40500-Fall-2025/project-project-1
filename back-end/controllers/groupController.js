@@ -22,16 +22,26 @@ export async function getGroups(req, res) {
 export async function createGroup(req, res) {
   try {
     const { group_name } = req.body;
+    const userId = req.user?.id || req.body.user_id;
 
     if (!group_name) {
       return res.status(400).json({ error: "Group Name is required" });
     }
 
-    const num_members = 1;
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+
+    // Create group with 0 members initially
+    const num_members = 0;
     const group = await createGroupWithRetry(group_name, num_members);
 
-    res.status(201).json(group);
+    // Add the current user as the first member
+    const updatedGroup = await addUserToGroup(userId, group.group_id);
+
+    res.status(201).json(updatedGroup);
   } catch (err) {
+    console.error("Create group error:", err);
     res.status(500).json({ error: "Failed to create group" });
   }
 }

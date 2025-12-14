@@ -13,6 +13,53 @@ export interface JoinGroupResponse {
   group: Group;
 }
 
+export async function createGroup(
+  group_name: string,
+  user_id: string
+): Promise<Group> {
+  console.log("Creating group:", { group_name, user_id });
+
+  const res = await fetch(`${API_URL}/groups`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    credentials: "include", // include cookies for authentication
+    body: JSON.stringify({
+      group_name: group_name.trim(),
+      user_id,
+    }),
+  });
+
+  console.log("Response status:", res.status);
+
+  const responseText = await res.text();
+  console.log("Raw response:", responseText);
+
+  let data: Group | { error?: string };
+
+  try {
+    data = JSON.parse(responseText) as Group | { error?: string };
+    console.log("Parsed data:", data);
+  } catch (err) {
+    console.error("Failed to parse JSON:", err);
+    console.error("Response text:", responseText);
+    throw new Error(
+      `Invalid server response: ${responseText.substring(0, 100)}`
+    );
+  }
+
+  if (!res.ok) {
+    const errMessage =
+      "error" in data ? data.error : `Server error: ${res.status}`;
+    console.error("Server error:", errMessage);
+    throw new Error(errMessage || `Server error: ${res.status}`);
+  }
+
+  return data as Group;
+}
+
 export async function joinGroup(
   invitation_code: string,
   user_id: string
@@ -36,10 +83,10 @@ export async function joinGroup(
   const responseText = await res.text();
   console.log("Raw response:", responseText);
 
-  let data: any;
+  let data: JoinGroupResponse | { error?: string };
 
   try {
-    data = JSON.parse(responseText);
+    data = JSON.parse(responseText) as JoinGroupResponse | { error?: string };
     console.log("Parsed data:", data);
   } catch (err) {
     console.error("Failed to parse JSON:", err);
@@ -50,10 +97,11 @@ export async function joinGroup(
   }
 
   if (!res.ok) {
-    const errMessage = data?.error || `Server error: ${res.status}`;
+    const errMessage =
+      "error" in data ? data.error : `Server error: ${res.status}`;
     console.error("Server error:", errMessage);
-    throw new Error(errMessage);
+    throw new Error(errMessage || `Server error: ${res.status}`);
   }
 
-  return data;
+  return data as JoinGroupResponse;
 }

@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
   Box,
   Typography,
-  Button,
   Menu,
   MenuItem,
   Divider,
@@ -148,7 +147,6 @@ const ListOfGroupsPage = () => {
        <CreateGroupModal
         open={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
-        //onCreate={handleJoinGroup}
       />
     </Box>
   );
