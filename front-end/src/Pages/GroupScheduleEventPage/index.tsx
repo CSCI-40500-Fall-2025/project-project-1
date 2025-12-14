@@ -97,7 +97,15 @@ const GroupScheduleEventPage = () => {
       </Box>
 
       {/* Calendar */}
-      <Box sx={{ flex: 1, overflow: "hidden" }}>
+      <Box
+        sx={{
+          flex: 1,
+          overflow: "auto",
+          display: "flex",
+          flexDirection: "column",
+          minHeight: 0,
+        }}
+      >
         <GroupCalendar groupId={groupId} />
       </Box>
     </Box>
