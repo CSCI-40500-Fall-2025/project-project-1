@@ -32,7 +32,7 @@ const RegisterPane = ({ onSwitchToLogin }: RegisterPaneProps) => {
     if (!validateInputs()) return;
     setLoading(true);
     console.log("Registering with:", { username, email, password });
-    logAction('trace', 'registering user'); 
+    logAction('trace', 'registering user');
     try {
       const newUser = await createUser(email, username, password);
       console.log("User registered:", newUser);

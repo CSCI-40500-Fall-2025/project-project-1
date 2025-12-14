@@ -19,3 +19,50 @@ export async function createGroup({
     `;
   return group;
 }
+
+export async function getGroupByInvitationCode(invitation_code) {
+  console.log(`[DEBUG] Looking up group with invitation code: ${invitation_code}`);
+  const result = await sql`
+    SELECT * FROM groups
+    WHERE invitation_code = ${invitation_code}
+  `;
+  console.log(`[DEBUG] User is member: ${result.length > 0}`);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function checkUserInGroup(userId, groupId) {
+  const result = await sql`
+    SELECT * FROM group_users
+    WHERE user_id = ${userId} AND group_id = ${groupId}
+  `;
+  return result.length > 0;
+}
+
+export async function addUserToGroup(userId, groupId) {
+  try {
+    // First, add the user to group_users table
+    console.log(`[DEBUG] Inserting into group_users...`);
+    await sql`
+      INSERT INTO group_users (user_id, group_id)
+      VALUES (${userId}, ${groupId})
+    `;
+    console.log(`[DEBUG] Insert successful`);
+
+    // Then increment the num_members in groups table
+    console.log(`[DEBUG] Updating group member count...`);
+    const [updatedGroup] = await sql`
+      UPDATE groups
+      SET num_members = num_members + 1
+      WHERE group_id = ${groupId}
+      RETURNING group_id, group_name, invitation_code, num_members
+    `;
+    console.log(`[DEBUG] Update successful:`, updatedGroup);
+
+    return updatedGroup;
+  } catch (error) {
+    console.error(`[DEBUG] addUserToGroup ERROR:`, error.message);
+    console.error(`[DEBUG] Error code:`, error.code);
+    console.error(`[DEBUG] Error detail:`, error.detail);
+    throw error;
+  }
+}
