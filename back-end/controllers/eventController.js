@@ -8,6 +8,7 @@ import {
   getEventById as getEventByIdService,
   getEventAndParticipantsById as getEventAndParticipantsByIdService,
   getAllEventsForUser as getAllEventsForUserService,
+  getAllEventsForGroup as getAllEventsForGroupService,
 } from "../services/eventService.js";
 
 export async function getAllEvents(req, res) {
@@ -38,6 +39,48 @@ export async function getAllEventsForUser(req, res) {
     res
       .status(500)
       .json({ error: "Failed to fetch events", details: err.message });
+  }
+}
+
+export async function getAllEventsForGroup(req, res) {
+  try {
+    const { groupId } = req.params;
+    if (!groupId) {
+      return res.status(400).json({ error: "Group ID is required" });
+    }
+    const events = await getAllEventsForGroupService(groupId);
+
+    // Get unique host IDs
+    const hostIds = [...new Set(events.map((event) => event.event_host))];
+
+    // Fetch usernames for all hosts
+    const { getUsernamesByIds } = await import("../services/userService.js");
+    const usernameMap = await getUsernamesByIds(hostIds);
+
+    // Get event IDs to fetch participants
+    const eventIds = events.map((event) => event.event_id);
+
+    // Fetch participants with usernames for all events
+    const { getEventParticipantsWithUsernames } = await import(
+      "../services/eventService.js"
+    );
+    const participantsByEvent = await getEventParticipantsWithUsernames(
+      eventIds
+    );
+
+    // Enrich events with host usernames and participants
+    const eventsWithUsernames = events.map((event) => ({
+      ...event,
+      host_username: usernameMap[event.event_host] || null,
+      participants: participantsByEvent[event.event_id] || [],
+    }));
+
+    res.status(200).json(eventsWithUsernames);
+  } catch (err) {
+    console.error("Error fetching events for group:", err);
+    res
+      .status(500)
+      .json({ error: "Failed to fetch group events", details: err.message });
   }
 }
 

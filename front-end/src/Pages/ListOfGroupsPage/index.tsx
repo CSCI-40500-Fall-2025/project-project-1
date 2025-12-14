@@ -31,14 +31,14 @@ const ListOfGroupsPage = () => {
   const { user: authUser } = useAuth();
 
   const transformGroup = (apiGroup: ApiGroup, index: number): Group => {
-
     const hash = apiGroup.group_id
       .split("")
       .reduce((acc, char) => acc + char.charCodeAt(0), 0);
     return {
       groupID: hash || index + 1,
       groupName: apiGroup.group_name,
-      memberIDs: [], 
+      memberIDs: [],
+      group_id: apiGroup.group_id, // Store actual group_id for navigation
     };
   };
 

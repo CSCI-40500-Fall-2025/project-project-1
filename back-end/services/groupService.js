@@ -83,3 +83,25 @@ export async function addUserToGroup(userId, groupId) {
     throw error;
   }
 }
+
+export async function getGroupMembers(groupId) {
+  const result = await sql`
+    SELECT
+      u.id,
+      u.username,
+      u.email
+    FROM users u
+    INNER JOIN group_users gu ON u.id = gu.user_id
+    WHERE gu.group_id = ${groupId}
+    ORDER BY u.username
+  `;
+  return result;
+}
+
+export async function getGroupById(groupId) {
+  const result = await sql`
+    SELECT * FROM groups
+    WHERE group_id = ${groupId}
+  `;
+  return result.length > 0 ? result[0] : null;
+}

@@ -1,4 +1,5 @@
 import { Box, Typography } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import type { Group } from '../const'
 
 
@@ -7,9 +8,12 @@ interface GroupBoxProps {
 }
 
 const GroupBox = ({ group } : GroupBoxProps) => {
+    const navigate = useNavigate();
 
     const handleClick = () => {
-        alert("Function not implemented");
+        if (group.group_id) {
+            navigate(`/group/${group.group_id}`);
+        }
     };
 
 

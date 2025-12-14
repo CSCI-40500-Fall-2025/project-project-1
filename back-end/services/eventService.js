@@ -3,7 +3,7 @@ import { pool } from "../db/pgPool.js";
 
 export async function getAllEvents() {
   const query = `SELECT * FROM events`;
-  const rows  = await sql.query(query);
+  const rows = await sql.query(query);
   return rows;
 }
 export async function getEventById(event_id) {
@@ -24,11 +24,61 @@ export async function getAllEventsForUser(user_id) {
   WHERE e.event_host = $1
     OR ep.user_id = $1`;
   try {
-    const rows = await sql.query(query, [user_id]); 
+    const rows = await sql.query(query, [user_id]);
     return rows || null;
   } catch (err) {
     console.error("Error fetching events for user:", err);
     throw err;
+  }
+}
+
+export async function getAllEventsForGroup(group_id) {
+  try {
+    const result = await sql`
+      SELECT * FROM events
+      WHERE group_id = ${group_id}
+      ORDER BY event_datetime ASC
+    `;
+    return result || [];
+  } catch (err) {
+    console.error("Error fetching events for group:", err);
+    throw err;
+  }
+}
+
+export async function getEventParticipantsWithUsernames(eventIds) {
+  try {
+    if (!eventIds || eventIds.length === 0) {
+      return {};
+    }
+
+    const result = await sql`
+      SELECT
+        ep.event_id,
+        ep.user_id,
+        u.username
+      FROM event_participants ep
+      INNER JOIN users u ON ep.user_id = u.id
+      WHERE ep.event_id = ANY(${eventIds})
+      ORDER BY ep.event_id, u.username
+    `;
+
+    // Group participants by event_id
+    const participantsByEvent = {};
+    result.forEach((row) => {
+      if (!participantsByEvent[row.event_id]) {
+        participantsByEvent[row.event_id] = [];
+      }
+      participantsByEvent[row.event_id].push({
+        user_id: row.user_id,
+        username: row.username,
+      });
+    });
+
+    return participantsByEvent;
+  } catch (err) {
+    console.error("Error fetching event participants with usernames:", err);
+    return {};
   }
 }
 
@@ -113,7 +163,7 @@ export async function createEvent({
   attendees,
   start_time,
   end_time,
-  rrule
+  rrule,
 }) {
   const query = `
     INSERT INTO events
@@ -133,7 +183,7 @@ export async function createEvent({
     attendees,
     start_time,
     end_time,
-    rrule
+    rrule,
   ];
 
   const rows = await sql.query(query, values);
@@ -175,7 +225,7 @@ export async function updateEvent(event_id, updateData) {
     "attendees",
     "start_time",
     "end_time",
-    "rrule"
+    "rrule",
   ];
 
   const keys = Object.keys(updateData).filter(

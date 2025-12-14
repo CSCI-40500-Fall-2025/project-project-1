@@ -13,6 +13,17 @@ export interface JoinGroupResponse {
   group: Group;
 }
 
+export interface GroupMember {
+  id: string;
+  username: string;
+  email: string;
+}
+
+export interface GroupDetails {
+  group: Group;
+  members: GroupMember[];
+}
+
 export async function createGroup(
   group_name: string,
   user_id: string
@@ -144,4 +155,44 @@ export async function joinGroup(
   }
 
   return data as JoinGroupResponse;
+}
+
+export async function getGroupDetails(groupId: string): Promise<GroupDetails> {
+  console.log("Fetching group details for:", groupId);
+
+  const res = await fetch(`${API_URL}/groups/${groupId}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    credentials: "include",
+  });
+
+  console.log("Response status:", res.status);
+
+  const responseText = await res.text();
+  console.log("Raw response:", responseText);
+
+  let data: GroupDetails | { error?: string };
+
+  try {
+    data = JSON.parse(responseText) as GroupDetails | { error?: string };
+    console.log("Parsed data:", data);
+  } catch (err) {
+    console.error("Failed to parse JSON:", err);
+    console.error("Response text:", responseText);
+    throw new Error(
+      `Invalid server response: ${responseText.substring(0, 100)}`
+    );
+  }
+
+  if (!res.ok) {
+    const errMessage =
+      "error" in data ? data.error : `Server error: ${res.status}`;
+    console.error("Server error:", errMessage);
+    throw new Error(errMessage || `Server error: ${res.status}`);
+  }
+
+  return data as GroupDetails;
 }

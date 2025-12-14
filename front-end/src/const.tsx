@@ -6,6 +6,11 @@ export type User = {
   email: string;
 };
 
+export type EventParticipant = {
+  user_id: string;
+  username: string;
+};
+
 export type Event = {
   event_id: string;
   group_id: string | null;
@@ -14,11 +19,13 @@ export type Event = {
   location: string | null;
   event_datetime: string;
   event_host: string;
+  host_username?: string | null; // Username of the host (from users table)
   attendees: number;
-  
-  start_time: Date;  
-  end_time: Date; 
-  rrule: any | null; 
+  participants?: EventParticipant[]; // List of attendees with usernames
+
+  start_time: Date;
+  end_time: Date;
+  rrule: any | null;
 };
 
 export type TodayEvent = {
@@ -35,6 +42,7 @@ export type Group = {
   groupID: number;
   groupName: string;
   memberIDs: string[];
+  group_id?: string; // Actual group ID from API for navigation
 };
 
 export type RecurrenceRule = {
@@ -44,9 +52,9 @@ export type RecurrenceRule = {
 
 export type CalendarEvent = {
   title: string;
-  start: Date; 
-  end: Date;  
-  rrule?: RecurrenceRule; 
+  start: Date;
+  end: Date;
+  rrule?: RecurrenceRule;
   originalStart?: Date;
   originalEnd?: Date;
   Event: Event;
@@ -55,7 +63,7 @@ export type CalendarEvent = {
 export type Calendar = {
   calendarID: string;
   userID: string;
-  calendar_data: CalendarEvent[]; 
+  calendar_data: CalendarEvent[];
   updated_at: number;
 };
 
