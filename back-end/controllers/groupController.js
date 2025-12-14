@@ -5,6 +5,7 @@ import {
   getGroupByInvitationCode,
   checkUserInGroup,
   addUserToGroup,
+  getGroupsForUser,
 } from "../services/groupService.js";
 
 const alphabetAndNumbers =
@@ -16,6 +17,22 @@ export async function getGroups(req, res) {
     res.json(events);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch events" });
+  }
+}
+
+export async function getUserGroups(req, res) {
+  try {
+    const userId = req.user?.id || req.query.user_id;
+
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+
+    const groups = await getGroupsForUser(userId);
+    res.json(groups);
+  } catch (err) {
+    console.error("Error fetching user groups:", err);
+    res.status(500).json({ error: "Failed to fetch user groups" });
   }
 }
 

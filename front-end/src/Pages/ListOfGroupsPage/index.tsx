@@ -1,36 +1,95 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Typography,
   Menu,
   MenuItem,
   Divider,
+  CircularProgress,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import GroupAddIcon from "@mui/icons-material/GroupAdd";
 import GroupBox from "../../components/GroupBox";
 import JoinGroupModal from "./JoinGroupModal";
-import CreateGroupModal from "./CreateGroupModal"; // If you have this
+import CreateGroupModal from "./CreateGroupModal";
 import { useAuth } from "../../AuthContext";
+import { getUserGroups } from "../../services/groupServices";
+import type { Group as ApiGroup } from "../../services/groupServices";
+import type { Group } from "../../const";
 
 const ListOfGroupsPage = () => {
   // State for modals and menu
   const [joinModalOpen, setJoinModalOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const menuOpen = Boolean(anchorEl);
 
-  // Fetch user's list of groups
-  const groupList = [
-    { groupID: 1, groupName: "bums 1", memberIDs: ["a", "b", "c"] },
-    { groupID: 2, groupName: "bums 2", memberIDs: ["a", "b", "c"] },
-    { groupID: 3, groupName: "bums 3", memberIDs: ["a", "b", "c"] },
-    { groupID: 4, groupName: "bums 4", memberIDs: ["a", "b", "c"] },
-    { groupID: 5, groupName: "bums 5", memberIDs: ["a", "b", "c"] },
-  ];
+  // State for groups
+  const [groupList, setGroupList] = useState<Group[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { user: authUser } = useAuth();
+
+  const transformGroup = (apiGroup: ApiGroup, index: number): Group => {
+
+    const hash = apiGroup.group_id
+      .split("")
+      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return {
+      groupID: hash || index + 1,
+      groupName: apiGroup.group_name,
+      memberIDs: [], 
+    };
+  };
+
+  // Fetch user's groups
+  useEffect(() => {
+    const fetchGroups = async () => {
+      if (!authUser?.userID) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        const apiGroups = await getUserGroups(authUser.userID);
+        const transformedGroups = apiGroups.map((group, index) =>
+          transformGroup(group, index)
+        );
+        setGroupList(transformedGroups);
+      } catch (err) {
+        console.error("Error fetching groups:", err);
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Failed to fetch groups. Please try again."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGroups();
+  }, [authUser?.userID]);
+
+  // Refresh groups after creating or joining
+  const refreshGroups = async () => {
+    if (!authUser?.userID) return;
+
+    try {
+      const apiGroups = await getUserGroups(authUser.userID);
+      const transformedGroups = apiGroups.map((group, index) =>
+        transformGroup(group, index)
+      );
+      setGroupList(transformedGroups);
+    } catch (err) {
+      console.error("Error refreshing groups:", err);
+    }
+  };
 
   // Handle the "+" button click
-  const handleAddClick = (event) => {
+  const handleAddClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
 
@@ -47,7 +106,6 @@ const ListOfGroupsPage = () => {
     handleMenuClose();
     setCreateModalOpen(true);
   };
-
 
   return (
     <Box
@@ -76,9 +134,49 @@ const ListOfGroupsPage = () => {
           gap: "1rem",
         }}
       >
-        {groupList.map((g) => (
-          <GroupBox key={g.groupID} group={g} />
-        ))}
+        {loading ? (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              width: "100%",
+              minHeight: "200px",
+            }}
+          >
+            <CircularProgress />
+          </Box>
+        ) : error ? (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              width: "100%",
+              minHeight: "200px",
+            }}
+          >
+            <Typography color="error">{error}</Typography>
+          </Box>
+        ) : groupList.length === 0 ? (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              width: "100%",
+              minHeight: "200px",
+            }}
+          >
+            <Typography color="text.secondary">
+              No groups yet. Create or join a group to get started!
+            </Typography>
+          </Box>
+        ) : (
+          groupList.map((g, index) => (
+            <GroupBox key={`group-${g.groupID}-${index}`} group={g} />
+          ))
+        )}
 
         {/* Add group button box - UPDATED */}
         <Box
@@ -141,12 +239,18 @@ const ListOfGroupsPage = () => {
       {/* Join Group Modal */}
       <JoinGroupModal
         open={joinModalOpen}
-        onClose={() => setJoinModalOpen(false)}
+        onClose={() => {
+          setJoinModalOpen(false);
+          refreshGroups();
+        }}
       />
 
-       <CreateGroupModal
+      <CreateGroupModal
         open={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
+        onClose={() => {
+          setCreateModalOpen(false);
+          refreshGroups();
+        }}
       />
     </Box>
   );

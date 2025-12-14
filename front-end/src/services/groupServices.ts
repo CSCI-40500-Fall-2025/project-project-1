@@ -60,6 +60,46 @@ export async function createGroup(
   return data as Group;
 }
 
+export async function getUserGroups(user_id: string): Promise<Group[]> {
+  console.log("Fetching groups for user:", user_id);
+
+  const res = await fetch(`${API_URL}/groups/user?user_id=${user_id}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    credentials: "include", // include cookies for authentication
+  });
+
+  console.log("Response status:", res.status);
+
+  const responseText = await res.text();
+  console.log("Raw response:", responseText);
+
+  let data: Group[] | { error?: string };
+
+  try {
+    data = JSON.parse(responseText) as Group[] | { error?: string };
+    console.log("Parsed data:", data);
+  } catch (err) {
+    console.error("Failed to parse JSON:", err);
+    console.error("Response text:", responseText);
+    throw new Error(
+      `Invalid server response: ${responseText.substring(0, 100)}`
+    );
+  }
+
+  if (!res.ok) {
+    const errMessage =
+      "error" in data ? data.error : `Server error: ${res.status}`;
+    console.error("Server error:", errMessage);
+    throw new Error(errMessage || `Server error: ${res.status}`);
+  }
+
+  return data as Group[];
+}
+
 export async function joinGroup(
   invitation_code: string,
   user_id: string
