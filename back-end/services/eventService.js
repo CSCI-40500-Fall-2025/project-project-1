@@ -82,6 +82,50 @@ export async function getEventParticipantsWithUsernames(eventIds) {
   }
 }
 
+export async function getAllMembersEventsForGroup(group_id) {
+  try {
+    // Get all events for all group members (hosted or participating)
+    // Return events with username but without detailed event info
+    // Exclude events that are already group events (group_id matches)
+    const result = await sql`
+      SELECT DISTINCT
+        e.event_id,
+        e.start_time,
+        e.end_time,
+        e.event_datetime,
+        u.id as user_id,
+        u.username
+      FROM events e
+      INNER JOIN event_participants ep ON e.event_id = ep.event_id
+      INNER JOIN users u ON ep.user_id = u.id
+      INNER JOIN group_users gu ON u.id = gu.user_id
+      WHERE gu.group_id = ${group_id}
+        AND (e.group_id IS NULL OR e.group_id != ${group_id})
+
+      UNION
+
+      SELECT DISTINCT
+        e.event_id,
+        e.start_time,
+        e.end_time,
+        e.event_datetime,
+        u.id as user_id,
+        u.username
+      FROM events e
+      INNER JOIN users u ON e.event_host = u.id
+      INNER JOIN group_users gu ON u.id = gu.user_id
+      WHERE gu.group_id = ${group_id}
+        AND (e.group_id IS NULL OR e.group_id != ${group_id})
+
+      ORDER BY start_time ASC
+    `;
+    return result || [];
+  } catch (err) {
+    console.error("Error fetching members events for group:", err);
+    throw err;
+  }
+}
+
 export async function getEventAndParticipantsById(event_id) {
   const query = `
     SELECT

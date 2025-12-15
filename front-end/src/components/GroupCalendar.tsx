@@ -5,7 +5,10 @@ import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "./Calendar.css";
 import "./GroupCalendar.css";
-import { getGroupEvents } from "../services/calendarServices";
+import {
+  getGroupEvents,
+  getGroupMembersEvents,
+} from "../services/calendarServices";
 import type { CalendarEvent } from "../const";
 import { Tooltip } from "react-tooltip";
 import { BsChevronCompactLeft, BsChevronCompactRight } from "react-icons/bs";
@@ -72,6 +75,21 @@ const CustomToolbar = (toolbar: any) => {
 };
 
 const CustomEvent = ({ event }: { event: CalendarEvent }) => {
+  // Check if this is a "busy" event (has isBusy flag)
+  if (event.isBusy) {
+    const tooltipContent = `
+      <div style="font-weight: bold; margin-bottom: 8px;">${event.title}</div>
+      <div style="margin-bottom: 4px;"><strong>Date:</strong> ${moment(event.start).format("MMM D, YYYY")}</div>
+      <div style="margin-bottom: 4px;"><strong>Time:</strong> ${moment(event.start).format("h:mm A")} - ${moment(event.end).format("h:mm A")}</div>
+    `;
+    return (
+      <div data-tooltip-id="event-tooltip" data-tooltip-html={tooltipContent}>
+        {event.title}
+      </div>
+    );
+  }
+
+  // Regular event with full details
   const tooltipContent = `
     <div style="font-weight: bold; margin-bottom: 8px;">${event.title}</div>
     <div style="margin-bottom: 4px;"><strong>Date:</strong> ${moment(event.start).format("MMM D, YYYY")}</div>
@@ -100,12 +118,19 @@ export default function GroupCalendar({ groupId }: GroupCalendarProps) {
 
   const fetchCalendar = async () => {
     try {
-      const events = await getGroupEvents(groupId);
-      console.log("Fetched events for calendar:", events);
+      // Fetch both group events and members' busy events
+      const [groupEvents, membersEvents] = await Promise.all([
+        getGroupEvents(groupId),
+        getGroupMembersEvents(groupId),
+      ]);
+
+      console.log("Fetched group events:", groupEvents);
+      console.log("Fetched members events:", membersEvents);
 
       const parsedEvents: CalendarEvent[] = [];
 
-      events.forEach((event) => {
+      // Parse group events (full details)
+      groupEvents.forEach((event) => {
         // Try multiple date fields - start_time, end_time, or event_datetime
         let startDate: Date | null = null;
         let endDate: Date | null = null;
@@ -147,12 +172,58 @@ export default function GroupCalendar({ groupId }: GroupCalendarProps) {
             title: event.event_title,
             rrule: event.rrule || undefined,
             Event: event,
+            isBusy: false,
           });
         } else {
           console.warn("Invalid date for event:", event, {
             start_time: event.start_time,
             end_time: event.end_time,
             event_datetime: event.event_datetime,
+          });
+        }
+      });
+
+      // Parse members' busy events (private, only show username)
+      membersEvents.forEach((memberEvent) => {
+        let startDate: Date | null = null;
+        let endDate: Date | null = null;
+
+        // Try start_time first
+        if (memberEvent.start_time) {
+          startDate =
+            memberEvent.start_time instanceof Date
+              ? memberEvent.start_time
+              : new Date(memberEvent.start_time);
+        }
+        // Fallback to event_datetime
+        else if (memberEvent.event_datetime) {
+          startDate = new Date(memberEvent.event_datetime);
+        }
+
+        // Try end_time first
+        if (memberEvent.end_time) {
+          endDate =
+            memberEvent.end_time instanceof Date
+              ? memberEvent.end_time
+              : new Date(memberEvent.end_time);
+        }
+        // Fallback: if we have startDate but no endDate, use startDate + 1 hour
+        else if (startDate) {
+          endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+        }
+
+        // Check if dates are valid
+        if (
+          startDate &&
+          endDate &&
+          !isNaN(startDate.getTime()) &&
+          !isNaN(endDate.getTime())
+        ) {
+          parsedEvents.push({
+            start: startDate,
+            end: endDate,
+            title: `${memberEvent.username} - Busy`,
+            isBusy: true,
           });
         }
       });
@@ -175,7 +246,7 @@ export default function GroupCalendar({ groupId }: GroupCalendarProps) {
     const expanded: CalendarEvent[] = [];
 
     events.forEach((event) => {
-      if (event.rrule && event.Event.rrule) {
+      if (event.rrule && event.Event?.rrule) {
         const rule = new RRule({
           freq: event.rrule.freq,
           count: event.rrule.count,

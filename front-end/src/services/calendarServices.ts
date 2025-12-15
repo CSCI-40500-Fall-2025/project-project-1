@@ -58,6 +58,29 @@ export async function getGroupEvents(groupId: string): Promise<Event[]> {
   return res.json();
 }
 
+export interface MemberBusyEvent {
+  event_id: string;
+  start_time: Date | string;
+  end_time: Date | string;
+  event_datetime: string;
+  user_id: string;
+  username: string;
+}
+
+export async function getGroupMembersEvents(
+  groupId: string
+): Promise<MemberBusyEvent[]> {
+  const res = await fetch(`${API_URL}/events/group/${groupId}/members`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+  });
+  if (!res.ok) {
+    throw new Error("Failed to fetch group members events");
+  }
+  return res.json();
+}
+
 // export async function upsertCalendar(calendar: CalendarEvent[]): Promise<Calendar> {
 //     const res = await fetch(`${API_URL}/calendar/`, {
 //         method: "POST",

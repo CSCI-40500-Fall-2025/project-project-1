@@ -16,9 +16,11 @@ import {
 import PersonIcon from "@mui/icons-material/Person";
 import PostAddIcon from "@mui/icons-material/PostAdd";
 import EventIcon from "@mui/icons-material/Event";
+import AddIcon from "@mui/icons-material/Add";
 import { useNavigate } from "react-router-dom";
 import { getGroupDetails } from "../../services/groupServices";
 import type { GroupDetails } from "../../services/groupServices";
+import CreateGroupEventModal from "../GroupEventsPage/CreateGroupEventModal";
 
 const GroupPage = () => {
   const { groupId } = useParams<{ groupId: string }>();
@@ -26,6 +28,7 @@ const GroupPage = () => {
   const [groupDetails, setGroupDetails] = useState<GroupDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [createEventModalOpen, setCreateEventModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchGroupDetails = async () => {
@@ -171,6 +174,21 @@ const GroupPage = () => {
             }}
           >
             View Calendar
+          </Button>
+          <Button
+            variant="contained"
+            fullWidth
+            startIcon={<AddIcon />}
+            onClick={() => setCreateEventModalOpen(true)}
+            sx={{
+              backgroundColor: "#5B6BC7",
+              "&:hover": {
+                backgroundColor: "#6B7AE8",
+              },
+              marginTop: 1,
+            }}
+          >
+            Create Event
           </Button>
         </Paper>
 
@@ -324,6 +342,19 @@ const GroupPage = () => {
           </Paper>
         </Box>
       </Box>
+
+      {/* Create Event Modal */}
+      {groupId && (
+        <CreateGroupEventModal
+          open={createEventModalOpen}
+          onClose={() => setCreateEventModalOpen(false)}
+          groupId={groupId}
+          onEventCreated={() => {
+            // Optionally refresh group details or navigate to events page
+            // For now, just close the modal
+          }}
+        />
+      )}
     </Box>
   );
 };

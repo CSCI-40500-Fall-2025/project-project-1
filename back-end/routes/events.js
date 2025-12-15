@@ -6,6 +6,7 @@ import {
   updateEvent,
   getAllEventsForUser,
   getAllEventsForGroup,
+  getAllMembersEventsForGroup,
   increaseAttendees,
   createEventAndEventParticipants,
   getEventById,
@@ -15,21 +16,29 @@ import { authMiddleware } from "../services/authMiddleware.js";
 
 const router = Router();
 
-router.get("/user", authMiddleware, getAllEventsForUser);
-router.get("/group/:groupId", getAllEventsForGroup);
-router.get("/:event_id/with-participants", getEventAndParticipantsById);
-router.get("/:event_id", getEventById);
-
+// Static routes must come before parameterized routes
 router.get("/", getAllEvents);
-router.post("/", authMiddleware, createEvent);
-router.post("/with-participants", createEventAndEventParticipants);
-router.delete("/:event_id", deleteEvent);
-router.put("/:event_id", updateEvent);
-router.patch("/:event_id/attendees", increaseAttendees);
-
+router.get("/user", authMiddleware, getAllEventsForUser);
 // check if user is logged in. Returns { id, username, email} if they are
 router.get("/me", authMiddleware, (req, res) => {
   res.json(req.user);
 });
+
+// Specific paths with parameters (more specific than :event_id)
+router.get("/group/:groupId", getAllEventsForGroup);
+router.get("/group/:groupId/members", getAllMembersEventsForGroup);
+router.get("/:event_id/with-participants", getEventAndParticipantsById);
+
+// Parameterized routes (must come after all static and specific routes)
+router.get("/:event_id", getEventById);
+
+// POST routes - static before parameterized
+router.post("/", authMiddleware, createEvent);
+router.post("/with-participants", createEventAndEventParticipants);
+
+// Other HTTP methods
+router.delete("/:event_id", deleteEvent);
+router.put("/:event_id", updateEvent);
+router.patch("/:event_id/attendees", increaseAttendees);
 
 export default router;

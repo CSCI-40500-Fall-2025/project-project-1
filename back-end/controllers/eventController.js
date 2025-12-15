@@ -9,6 +9,7 @@ import {
   getEventAndParticipantsById as getEventAndParticipantsByIdService,
   getAllEventsForUser as getAllEventsForUserService,
   getAllEventsForGroup as getAllEventsForGroupService,
+  getAllMembersEventsForGroup as getAllMembersEventsForGroupService,
 } from "../services/eventService.js";
 
 export async function getAllEvents(req, res) {
@@ -81,6 +82,23 @@ export async function getAllEventsForGroup(req, res) {
     res
       .status(500)
       .json({ error: "Failed to fetch group events", details: err.message });
+  }
+}
+
+export async function getAllMembersEventsForGroup(req, res) {
+  try {
+    const { groupId } = req.params;
+    if (!groupId) {
+      return res.status(400).json({ error: "Group ID is required" });
+    }
+    const membersEvents = await getAllMembersEventsForGroupService(groupId);
+    res.status(200).json(membersEvents);
+  } catch (err) {
+    console.error("Error fetching members events for group:", err);
+    res.status(500).json({
+      error: "Failed to fetch members events",
+      details: err.message,
+    });
   }
 }
 

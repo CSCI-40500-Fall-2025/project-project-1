@@ -60,7 +60,13 @@ const Navbar = ({ loggedIn, logOut }: NavbarProps) => {
                   {item}
                 </Button>
               ))}
-              <Button color="inherit" onClick={() => logOut()}>
+              <Button
+                color="inherit"
+                onClick={async () => {
+                  await logOut();
+                  navigate("/login");
+                }}
+              >
                 Log Out
               </Button>
             </>

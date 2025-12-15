@@ -24,6 +24,8 @@ import { getGroupEvents } from "../../services/calendarServices";
 import { getGroupDetails } from "../../services/groupServices";
 import type { Event } from "../../const";
 import type { GroupDetails } from "../../services/groupServices";
+import CreateGroupEventModal from "./CreateGroupEventModal";
+import AddIcon from "@mui/icons-material/Add";
 
 const GroupEventsPage = () => {
   const { groupId } = useParams<{ groupId: string }>();
@@ -34,6 +36,7 @@ const GroupEventsPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
   const [showPastEvents, setShowPastEvents] = useState(false);
+  const [createEventModalOpen, setCreateEventModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -103,6 +106,26 @@ const GroupEventsPage = () => {
   const filteredEvents = showPastEvents
     ? events
     : events.filter((event) => !isPastEvent(event.event_datetime));
+
+  const refreshEvents = async () => {
+    if (!groupId) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+      const eventsData = await getGroupEvents(groupId);
+      setEvents(eventsData);
+    } catch (err) {
+      console.error("Error refreshing events:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to refresh events. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -181,17 +204,38 @@ const GroupEventsPage = () => {
         >
           {groupDetails?.group.group_name || "Group"} Events
         </Typography>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={showPastEvents}
-              onChange={(e) => setShowPastEvents(e.target.checked)}
-              color="primary"
-            />
-          }
-          label="Show Past Events"
-          sx={{ marginLeft: "auto" }}
-        />
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            marginLeft: "auto",
+          }}
+        >
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setCreateEventModalOpen(true)}
+            sx={{
+              backgroundColor: "#5B6BC7",
+              "&:hover": {
+                backgroundColor: "#6B7AE8",
+              },
+            }}
+          >
+            Create Event
+          </Button>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={showPastEvents}
+                onChange={(e) => setShowPastEvents(e.target.checked)}
+                color="primary"
+              />
+            }
+            label="Show Past Events"
+          />
+        </Box>
       </Box>
 
       {/* Events List */}
@@ -384,6 +428,16 @@ const GroupEventsPage = () => {
             );
           })}
         </Box>
+      )}
+
+      {/* Create Event Modal */}
+      {groupId && (
+        <CreateGroupEventModal
+          open={createEventModalOpen}
+          onClose={() => setCreateEventModalOpen(false)}
+          groupId={groupId}
+          onEventCreated={refreshEvents}
+        />
       )}
     </Box>
   );
