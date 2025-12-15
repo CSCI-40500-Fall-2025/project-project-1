@@ -417,7 +417,31 @@ const GroupEventsPage = () => {
       </Box>
 
       {/* Events List */}
-      <Box sx={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+      <Box
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          overflow: "auto",
+          // Custom scrollbar styling
+          "&::-webkit-scrollbar": {
+            width: "10px",
+          },
+          "&::-webkit-scrollbar-track": {
+            background: "rgba(102, 126, 234, 0.1)",
+            borderRadius: "10px",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            background: "rgba(102, 126, 234, 0.5)",
+            borderRadius: "10px",
+            "&:hover": {
+              background: "rgba(102, 126, 234, 0.7)",
+            },
+          },
+          // Firefox scrollbar styling
+          scrollbarWidth: "thin",
+          scrollbarColor: "rgba(102, 126, 234, 0.5) rgba(102, 126, 234, 0.1)",
+        }}
+      >
         {filteredEvents.length === 0 ? (
           <Box
             sx={{
@@ -470,7 +494,7 @@ const GroupEventsPage = () => {
                     backgroundColor: "rgba(48, 43, 127, 0.92)",
                     borderRadius: 3,
                     border: isExpanded
-                      ? "2px solid #667eea"
+                      ? "2px solidrgb(82, 97, 165)"
                       : "1px solid rgba(102, 126, 234, 0.3)",
                     "&:hover": {
                       boxShadow: 4,

@@ -64,7 +64,7 @@ const EventCard = ({ event }: EventCardProps) => {
                   display: "flex",
                   flexDirection: "column",
                   textAlign: "center",
-                  marginLeft: '30px'
+                  marginLeft: "30px",
                 }}
               >
                 <Typography variant="h6" fontWeight="bold">
@@ -112,7 +112,7 @@ const EventCard = ({ event }: EventCardProps) => {
             <strong>Time:</strong> {event.eventTime}
             <br />
             <strong>Organizer:</strong> {event.organizerName}
-            <br/>
+            <br />
             {location && (
               <>
                 <strong>Location:</strong> {event.location}
