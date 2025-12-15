@@ -81,6 +81,55 @@ export async function getGroupMembersEvents(
   return res.json();
 }
 
+export async function attendEvent(eventId: string): Promise<void> {
+  const res = await fetch(`${API_URL}/events/${eventId}/attend`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || "Failed to attend event");
+  }
+}
+
+export async function unattendEvent(eventId: string): Promise<void> {
+  const res = await fetch(`${API_URL}/events/${eventId}/unattend`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || "Failed to leave event");
+  }
+}
+
+export async function checkUserAttendance(eventId: string): Promise<boolean> {
+  const res = await fetch(`${API_URL}/events/${eventId}/attendance`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+  });
+  if (!res.ok) {
+    throw new Error("Failed to check attendance");
+  }
+  const data = await res.json();
+  return data.isAttending || false;
+}
+
+export async function deleteEvent(eventId: string): Promise<void> {
+  const res = await fetch(`${API_URL}/events/${eventId}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || "Failed to delete event");
+  }
+}
+
 // export async function upsertCalendar(calendar: CalendarEvent[]): Promise<Calendar> {
 //     const res = await fetch(`${API_URL}/calendar/`, {
 //         method: "POST",

@@ -35,16 +35,36 @@ const Layout = () => {
   return (
     <GradientBackground active={useGradientBackground}>
       <Box
-        sx={{ display: "flex", minHeight: "100vh", flexDirection: "column" }}
+        sx={{
+          display: "flex",
+          height: "100vh",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
       >
         <Navbar loggedIn={loggedIn} logOut={logout} />
         <Box
           component="main"
           sx={{
-            padding: 9,
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            paddingTop: "64px", // Account for fixed AppBar
+            overflow: "hidden",
+            minHeight: 0, // Allow flex children to shrink
           }}
         >
-          {content}
+          <Box
+            sx={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+              padding: 2,
+            }}
+          >
+            {content}
+          </Box>
         </Box>
       </Box>
     </GradientBackground>

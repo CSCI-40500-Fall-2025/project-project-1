@@ -20,12 +20,19 @@ import PersonIcon from "@mui/icons-material/Person";
 import PeopleIcon from "@mui/icons-material/People";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import { getGroupEvents } from "../../services/calendarServices";
+import {
+  getGroupEvents,
+  attendEvent,
+  unattendEvent,
+  checkUserAttendance,
+  deleteEvent,
+} from "../../services/calendarServices";
 import { getGroupDetails } from "../../services/groupServices";
 import type { Event } from "../../const";
 import type { GroupDetails } from "../../services/groupServices";
 import CreateGroupEventModal from "./CreateGroupEventModal";
 import AddIcon from "@mui/icons-material/Add";
+import { useAuth } from "../../AuthContext";
 
 const GroupEventsPage = () => {
   const { groupId } = useParams<{ groupId: string }>();
@@ -37,6 +44,12 @@ const GroupEventsPage = () => {
   const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
   const [showPastEvents, setShowPastEvents] = useState(false);
   const [createEventModalOpen, setCreateEventModalOpen] = useState(false);
+  const [userAttending, setUserAttending] = useState<Set<string>>(new Set());
+  const [attendingLoading, setAttendingLoading] = useState<Set<string>>(
+    new Set()
+  );
+  const [deletingEvent, setDeletingEvent] = useState<string | null>(null);
+  const { user: authUser } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -58,6 +71,28 @@ const GroupEventsPage = () => {
 
         setGroupDetails(groupData);
         setEvents(eventsData);
+
+        // Check attendance for all events if user is logged in
+        if (authUser?.userID) {
+          const attendanceChecks = eventsData.map((event) =>
+            checkUserAttendance(event.event_id)
+              .then((isAttending) => ({
+                eventId: event.event_id,
+                isAttending,
+              }))
+              .catch(() => ({
+                eventId: event.event_id,
+                isAttending: false,
+              }))
+          );
+          const attendanceResults = await Promise.all(attendanceChecks);
+          const attendingSet = new Set(
+            attendanceResults
+              .filter((result) => result.isAttending)
+              .map((result) => result.eventId)
+          );
+          setUserAttending(attendingSet);
+        }
       } catch (err) {
         console.error("Error fetching group events:", err);
         setError(
@@ -71,7 +106,7 @@ const GroupEventsPage = () => {
     };
 
     fetchData();
-  }, [groupId]);
+  }, [groupId, authUser?.userID]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -115,6 +150,28 @@ const GroupEventsPage = () => {
       setError(null);
       const eventsData = await getGroupEvents(groupId);
       setEvents(eventsData);
+
+      // Refresh attendance status
+      if (authUser?.userID) {
+        const attendanceChecks = eventsData.map((event) =>
+          checkUserAttendance(event.event_id)
+            .then((isAttending) => ({
+              eventId: event.event_id,
+              isAttending,
+            }))
+            .catch(() => ({
+              eventId: event.event_id,
+              isAttending: false,
+            }))
+        );
+        const attendanceResults = await Promise.all(attendanceChecks);
+        const attendingSet = new Set(
+          attendanceResults
+            .filter((result) => result.isAttending)
+            .map((result) => result.eventId)
+        );
+        setUserAttending(attendingSet);
+      }
     } catch (err) {
       console.error("Error refreshing events:", err);
       setError(
@@ -125,6 +182,89 @@ const GroupEventsPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleToggleAttendance = async (
+    eventId: string,
+    e: React.MouseEvent
+  ) => {
+    e.stopPropagation(); // Prevent expanding/collapsing the event
+
+    if (!authUser?.userID) {
+      setError("Please log in to attend events");
+      return;
+    }
+
+    const isAttending = userAttending.has(eventId);
+    setAttendingLoading((prev) => new Set(prev).add(eventId));
+
+    try {
+      if (isAttending) {
+        await unattendEvent(eventId);
+        setUserAttending((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(eventId);
+          return newSet;
+        });
+      } else {
+        await attendEvent(eventId);
+        setUserAttending((prev) => new Set(prev).add(eventId));
+      }
+      // Refresh events to update attendee count
+      await refreshEvents();
+    } catch (err) {
+      console.error("Error toggling attendance:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to update attendance. Please try again."
+      );
+    } finally {
+      setAttendingLoading((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(eventId);
+        return newSet;
+      });
+    }
+  };
+
+  const handleDeleteEvent = async (eventId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent expanding/collapsing the event
+
+    if (!authUser?.userID) {
+      setError("Please log in to delete events");
+      return;
+    }
+
+    // Confirm deletion
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this event? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
+
+    setDeletingEvent(eventId);
+
+    try {
+      await deleteEvent(eventId);
+      // Refresh events to remove deleted event from list
+      await refreshEvents();
+    } catch (err) {
+      console.error("Error deleting event:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to delete event. Please try again."
+      );
+    } finally {
+      setDeletingEvent(null);
+    }
+  };
+
+  const isEventHost = (event: Event) => {
+    return authUser?.userID === event.event_host;
   };
 
   if (loading) {
@@ -171,264 +311,566 @@ const GroupEventsPage = () => {
       sx={{
         display: "flex",
         flexDirection: "column",
-        height: "calc(100vh - 64px)",
-        padding: 2,
+        height: "100%",
+        width: "100%",
         maxWidth: "1200px",
         margin: "0 auto",
+        overflow: "hidden",
+        minHeight: 0,
+        gap: 2,
       }}
     >
       {/* Header */}
-      <Box
+      <Paper
+        elevation={3}
         sx={{
-          display: "flex",
-          alignItems: "center",
-          marginBottom: 3,
-          gap: 2,
-          position: "relative",
+          padding: 3,
+          color: "white",
+          borderRadius: 3,
+          flexShrink: 0,
         }}
       >
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate(`/group/${groupId}`)}
-        >
-          Back
-        </Button>
-        <Typography
-          variant="h4"
-          sx={{
-            fontWeight: 600,
-            position: "absolute",
-            left: "50%",
-            transform: "translateX(-50%)",
-          }}
-        >
-          {groupDetails?.group.group_name || "Group"} Events
-        </Typography>
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
             gap: 2,
-            marginLeft: "auto",
+            position: "relative",
           }}
         >
           <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setCreateEventModalOpen(true)}
+            startIcon={<ArrowBackIcon />}
+            onClick={() => navigate(`/group/${groupId}`)}
             sx={{
-              backgroundColor: "#5B6BC7",
+              color: "white",
+              borderColor: "rgba(255, 255, 255, 0.5)",
               "&:hover": {
-                backgroundColor: "#6B7AE8",
+                borderColor: "white",
+                backgroundColor: "rgba(255, 255, 255, 0.1)",
               },
             }}
+            variant="outlined"
           >
-            Create Event
+            Back
           </Button>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={showPastEvents}
-                onChange={(e) => setShowPastEvents(e.target.checked)}
-                color="primary"
-              />
-            }
-            label="Show Past Events"
-          />
+          <Typography
+            variant="h4"
+            sx={{
+              fontWeight: 700,
+              position: "absolute",
+              left: "50%",
+              transform: "translateX(-50%)",
+              color: "white",
+              textShadow: "0 2px 4px rgba(0,0,0,0.2)",
+            }}
+          >
+            {groupDetails?.group.group_name || "Group"} Events
+          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              marginLeft: "auto",
+            }}
+          >
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showPastEvents}
+                  onChange={(e) => setShowPastEvents(e.target.checked)}
+                  sx={{
+                    "& .MuiSwitch-switchBase.Mui-checked": {
+                      color: "white",
+                    },
+                    "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                      backgroundColor: "rgba(255, 255, 255, 0.5)",
+                    },
+                  }}
+                />
+              }
+              label={
+                <Typography sx={{ color: "white", fontWeight: 500 }}>
+                  Show Past Events
+                </Typography>
+              }
+            />
+          </Box>
         </Box>
+      </Paper>
+
+      {/* Create Event Button */}
+      <Box sx={{ display: "flex", justifyContent: "flex-end", flexShrink: 0 }}>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => setCreateEventModalOpen(true)}
+          sx={{
+            backgroundColor: "#5B6BC7",
+            "&:hover": {
+              backgroundColor: "#6B7AE8",
+            },
+          }}
+        >
+          Create Event
+        </Button>
       </Box>
 
       {/* Events List */}
-      {filteredEvents.length === 0 ? (
-        <Paper
-          elevation={2}
-          sx={{
-            padding: 4,
-            textAlign: "center",
-            backgroundColor: "rgba(0, 0, 0, 0.02)",
-          }}
-        >
-          <EventIcon
-            sx={{ fontSize: 64, color: "text.secondary", marginBottom: 2 }}
-          />
-          <Typography
-            variant="h6"
-            color="text.secondary"
-            sx={{ marginBottom: 1 }}
+      <Box sx={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+        {filteredEvents.length === 0 ? (
+          <Box
+            sx={{
+              padding: 6,
+              textAlign: "center",
+              backgroundColor: "transparent",
+              borderRadius: 3,
+              border: "2px dashed rgba(102, 126, 234, 0.5)",
+            }}
           >
-            No events scheduled
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {showPastEvents
-              ? "This group doesn't have past events."
-              : "No upcoming events. Toggle 'Show Past Events' to see previous events."}
-          </Typography>
-        </Paper>
-      ) : (
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {filteredEvents.map((event) => {
-            const isExpanded = isEventExpanded(event.event_id);
-            return (
-              <Paper
-                key={event.event_id}
-                elevation={2}
-                sx={{
-                  padding: 3,
-                  cursor: "pointer",
-                  transition: "all 0.2s ease-in-out",
-                  "&:hover": {
-                    boxShadow: 4,
-                    transform: "translateY(-2px)",
-                  },
-                }}
-                onClick={() => toggleEventExpanded(event.event_id)}
-              >
+            <EventIcon
+              sx={{
+                fontSize: 80,
+                color: "#9e9e9e",
+                marginBottom: 2,
+                opacity: 0.5,
+              }}
+            />
+            <Typography
+              variant="h5"
+              sx={{
+                marginBottom: 1,
+                fontWeight: 600,
+                color: "rgba(255, 255, 255, 0.76)",
+              }}
+            >
+              No events scheduled
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{ color: "#757575", maxWidth: "500px", margin: "0 auto" }}
+            >
+              {showPastEvents
+                ? "This group doesn't have past events."
+                : "No upcoming events. Toggle 'Show Past Events' to see previous events."}
+            </Typography>
+          </Box>
+        ) : (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+            {filteredEvents.map((event) => {
+              const isExpanded = isEventExpanded(event.event_id);
+              const isPast = isPastEvent(event.event_datetime);
+              return (
                 <Box
+                  key={event.event_id}
                   sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    marginBottom: 2,
+                    padding: 3.5,
+                    cursor: "pointer",
+                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    backgroundColor: "rgba(48, 43, 127, 0.92)",
+                    borderRadius: 3,
+                    border: isExpanded
+                      ? "2px solid #667eea"
+                      : "1px solid rgba(102, 126, 234, 0.3)",
+                    "&:hover": {
+                      boxShadow: 4,
+                      transform: "translateY(-4px)",
+                      borderColor: "#667eea",
+                    },
+                    opacity: isPast ? 0.85 : 1,
                   }}
+                  onClick={() => toggleEventExpanded(event.event_id)}
                 >
-                  <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                    {event.event_title}
-                  </Typography>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Chip
-                      label={`${event.attendees} attending`}
-                      size="small"
-                      sx={{ backgroundColor: "#252061ff", color: "white" }}
-                    />
-                    <IconButton
-                      size="small"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleEventExpanded(event.event_id);
-                      }}
-                      sx={{ ml: 1 }}
-                    >
-                      {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                    </IconButton>
-                  </Box>
-                </Box>
-
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <EventIcon fontSize="small" color="action" />
-                    <Typography variant="body2">
-                      {formatDate(event.event_datetime)}
-                    </Typography>
-                  </Box>
-
-                  {event.location && (
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <LocationOnIcon fontSize="small" color="action" />
-                      <Typography variant="body2">{event.location}</Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      marginBottom: 2.5,
+                    }}
+                  >
+                    <Box sx={{ flex: 1 }}>
+                      <Typography
+                        variant="h5"
+                        sx={{
+                          fontWeight: 700,
+                          color: "white",
+                          marginBottom: 0.5,
+                          fontSize: "1.5rem",
+                        }}
+                      >
+                        {event.event_title}
+                      </Typography>
+                      {isPast && (
+                        <Chip
+                          label="Past Event"
+                          size="small"
+                          sx={{
+                            backgroundColor: "#9e9e9e",
+                            color: "white",
+                            fontSize: "0.7rem",
+                            height: "20px",
+                            marginTop: 0.5,
+                          }}
+                        />
+                      )}
                     </Box>
-                  )}
-
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <PersonIcon fontSize="small" color="action" />
-                    <Typography variant="body2">
-                      Host: {event.host_username || event.event_host}
-                    </Typography>
-                  </Box>
-                </Box>
-
-                <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-                  <Divider sx={{ marginY: 2 }} />
-
-                  {/* Description Section */}
-                  <Box sx={{ marginBottom: 3 }}>
-                    <Typography
-                      variant="subtitle2"
-                      sx={{ fontWeight: 600, marginBottom: 1 }}
+                    <Box
+                      sx={{ display: "flex", alignItems: "center", gap: 1.5 }}
                     >
-                      Description
-                    </Typography>
-                    {event.event_description ? (
+                      <Chip
+                        icon={<PeopleIcon sx={{ color: "white !important" }} />}
+                        label={`${event.attendees} attending`}
+                        size="medium"
+                        sx={{
+                          backgroundColor: "#667eea",
+                          color: "white",
+                          fontWeight: 600,
+                          fontSize: "0.85rem",
+                          height: "32px",
+                        }}
+                      />
+                      <IconButton
+                        size="medium"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleEventExpanded(event.event_id);
+                        }}
+                        sx={{
+                          backgroundColor: isExpanded
+                            ? "#667eea"
+                            : "rgba(102, 126, 234, 0.1)",
+                          color: isExpanded ? "white" : "#667eea",
+                          "&:hover": {
+                            backgroundColor: "#667eea",
+                            color: "white",
+                          },
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                      </IconButton>
+                    </Box>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 1.5,
+                      paddingLeft: 0.5,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1.5,
+                        padding: 1,
+                        borderRadius: 1,
+                        backgroundColor: "rgba(102, 126, 234, 0.2)",
+                      }}
+                    >
+                      <EventIcon
+                        sx={{ color: "#9bb5ff", fontSize: "1.3rem" }}
+                      />
                       <Typography
                         variant="body1"
-                        sx={{ color: "text.secondary", whiteSpace: "pre-wrap" }}
+                        sx={{
+                          fontWeight: 500,
+                          color: "rgba(255, 255, 255, 0.95)",
+                        }}
                       >
-                        {event.event_description}
+                        {formatDate(event.event_datetime)}
                       </Typography>
-                    ) : (
-                      <Typography
-                        variant="body2"
-                        sx={{ color: "text.secondary", fontStyle: "italic" }}
-                      >
-                        No description provided
-                      </Typography>
-                    )}
-                  </Box>
+                    </Box>
 
-                  {/* Attendees Section */}
-                  <Box>
-                    <Typography
-                      variant="subtitle2"
-                      sx={{ fontWeight: 600, marginBottom: 1 }}
-                    >
-                      Who&apos;s Attending
-                    </Typography>
-                    {event.participants && event.participants.length > 0 ? (
+                    {event.location && (
                       <Box
                         sx={{
                           display: "flex",
-                          alignItems: "flex-start",
+                          alignItems: "center",
+                          gap: 1.5,
+                          padding: 1,
+                          borderRadius: 1,
+                          backgroundColor: "rgba(102, 126, 234, 0.2)",
+                        }}
+                      >
+                        <LocationOnIcon
+                          sx={{ color: "#9bb5ff", fontSize: "1.3rem" }}
+                        />
+                        <Typography
+                          variant="body1"
+                          sx={{
+                            fontWeight: 500,
+                            color: "rgba(255, 255, 255, 0.95)",
+                          }}
+                        >
+                          {event.location}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1.5,
+                        padding: 1,
+                        borderRadius: 1,
+                        backgroundColor: "rgba(102, 126, 234, 0.2)",
+                      }}
+                    >
+                      <PersonIcon
+                        sx={{ color: "#9bb5ff", fontSize: "1.3rem" }}
+                      />
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontWeight: 500,
+                          color: "rgba(255, 255, 255, 0.95)",
+                        }}
+                      >
+                        Host:{" "}
+                        <Box
+                          component="span"
+                          sx={{ fontWeight: 600, color: "white" }}
+                        >
+                          {event.host_username || event.event_host}
+                        </Box>
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                    <Divider
+                      sx={{
+                        marginY: 3,
+                        borderColor: "rgba(102, 126, 234, 0.2)",
+                        borderWidth: 1,
+                      }}
+                    />
+
+                    {/* Attend/Unattend/Delete Button */}
+                    {authUser && (
+                      <Box sx={{ marginBottom: 3 }}>
+                        {isEventHost(event) ? (
+                          <Button
+                            variant="contained"
+                            color="error"
+                            onClick={(e) =>
+                              handleDeleteEvent(event.event_id, e)
+                            }
+                            disabled={deletingEvent === event.event_id}
+                            sx={{
+                              backgroundColor: "#d32f2f",
+                              padding: "10px 24px",
+                              fontSize: "0.95rem",
+                              fontWeight: 600,
+                              borderRadius: 2,
+                              textTransform: "none",
+                              boxShadow: "0 2px 8px rgba(211, 47, 47, 0.3)",
+                              "&:hover": {
+                                backgroundColor: "#c62828",
+                                boxShadow: "0 4px 12px rgba(211, 47, 47, 0.4)",
+                              },
+                            }}
+                          >
+                            {deletingEvent === event.event_id
+                              ? "Deleting..."
+                              : "Delete Event"}
+                          </Button>
+                        ) : (
+                          <Button
+                            variant={
+                              userAttending.has(event.event_id)
+                                ? "outlined"
+                                : "contained"
+                            }
+                            onClick={(e) =>
+                              handleToggleAttendance(event.event_id, e)
+                            }
+                            disabled={attendingLoading.has(event.event_id)}
+                            sx={{
+                              backgroundColor: userAttending.has(event.event_id)
+                                ? "transparent"
+                                : "#667eea",
+                              color: userAttending.has(event.event_id)
+                                ? "#667eea"
+                                : "white",
+                              borderColor: "#667eea",
+                              borderWidth: 2,
+                              padding: "10px 24px",
+                              fontSize: "0.95rem",
+                              fontWeight: 600,
+                              borderRadius: 2,
+                              textTransform: "none",
+                              boxShadow: userAttending.has(event.event_id)
+                                ? "none"
+                                : "0 2px 8px rgba(102, 126, 234, 0.3)",
+                              "&:hover": {
+                                backgroundColor: userAttending.has(
+                                  event.event_id
+                                )
+                                  ? "rgba(102, 126, 234, 0.1)"
+                                  : "#5568d3",
+                                borderColor: "#5568d3",
+                                boxShadow: userAttending.has(event.event_id)
+                                  ? "none"
+                                  : "0 4px 12px rgba(102, 126, 234, 0.4)",
+                              },
+                            }}
+                          >
+                            {attendingLoading.has(event.event_id)
+                              ? "Loading..."
+                              : userAttending.has(event.event_id)
+                                ? "Unattend"
+                                : "Attend"}
+                          </Button>
+                        )}
+                      </Box>
+                    )}
+
+                    {/* Description Section */}
+                    <Box
+                      sx={{
+                        marginBottom: 3,
+                        padding: 2,
+                        borderRadius: 2,
+                        backgroundColor: "rgba(102, 126, 234, 0.15)",
+                        border: "1px solid rgba(102, 126, 234, 0.3)",
+                      }}
+                    >
+                      <Typography
+                        variant="subtitle1"
+                        sx={{
+                          fontWeight: 700,
+                          marginBottom: 1.5,
+                          color: "#9bb5ff",
+                          display: "flex",
+                          alignItems: "center",
                           gap: 1,
                         }}
                       >
-                        <PeopleIcon
-                          fontSize="small"
-                          color="action"
-                          sx={{ mt: 0.5 }}
-                        />
-                        <Box sx={{ flex: 1 }}>
-                          <Typography
-                            variant="body2"
-                            sx={{ mb: 1, color: "text.secondary" }}
-                          >
-                            {event.participants.length}{" "}
-                            {event.participants.length === 1
-                              ? "person is"
-                              : "people are"}{" "}
-                            attending
-                          </Typography>
-                          <Box
-                            sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}
-                          >
-                            {event.participants.map((participant) => (
-                              <Chip
-                                key={participant.user_id}
-                                label={participant.username}
-                                size="small"
-                                variant="outlined"
-                                sx={{
-                                  fontSize: "0.75rem",
-                                  height: "24px",
-                                }}
-                              />
-                            ))}
+                        <EventIcon sx={{ fontSize: "1.2rem" }} />
+                        Description
+                      </Typography>
+                      {event.event_description ? (
+                        <Typography
+                          variant="body1"
+                          sx={{
+                            color: "rgba(255, 255, 255, 0.9)",
+                            whiteSpace: "pre-wrap",
+                            lineHeight: 1.7,
+                          }}
+                        >
+                          {event.event_description}
+                        </Typography>
+                      ) : (
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: "rgba(255, 255, 255, 0.6)",
+                            fontStyle: "italic",
+                          }}
+                        >
+                          No description provided
+                        </Typography>
+                      )}
+                    </Box>
+
+                    {/* Attendees Section */}
+                    <Box
+                      sx={{
+                        padding: 2,
+                        borderRadius: 2,
+                        backgroundColor: "rgba(102, 126, 234, 0.15)",
+                        border: "1px solid rgba(102, 126, 234, 0.3)",
+                      }}
+                    >
+                      <Typography
+                        variant="subtitle1"
+                        sx={{
+                          fontWeight: 700,
+                          marginBottom: 1.5,
+                          color: "#9bb5ff",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                        }}
+                      >
+                        <PeopleIcon sx={{ fontSize: "1.2rem" }} />
+                        Who&apos;s Attending
+                      </Typography>
+                      {event.participants && event.participants.length > 0 ? (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "flex-start",
+                            gap: 1.5,
+                          }}
+                        >
+                          <Box sx={{ flex: 1 }}>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                mb: 1.5,
+                                color: "rgba(255, 255, 255, 0.8)",
+                                fontWeight: 500,
+                              }}
+                            >
+                              {event.participants.length}{" "}
+                              {event.participants.length === 1
+                                ? "person is"
+                                : "people are"}{" "}
+                              attending
+                            </Typography>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: 1,
+                              }}
+                            >
+                              {event.participants.map((participant) => (
+                                <Chip
+                                  key={participant.user_id}
+                                  label={participant.username}
+                                  size="medium"
+                                  sx={{
+                                    backgroundColor: "#9bb5ff",
+                                    color: "#1a1a1a",
+                                    fontWeight: 600,
+                                    fontSize: "0.85rem",
+                                    height: "32px",
+                                    "&:hover": {
+                                      backgroundColor: "#b8cfff",
+                                    },
+                                  }}
+                                />
+                              ))}
+                            </Box>
                           </Box>
                         </Box>
-                      </Box>
-                    ) : (
-                      <Typography
-                        variant="body2"
-                        sx={{ color: "text.secondary", fontStyle: "italic" }}
-                      >
-                        No attendees yet
-                      </Typography>
-                    )}
-                  </Box>
-                </Collapse>
-              </Paper>
-            );
-          })}
-        </Box>
-      )}
+                      ) : (
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: "rgba(255, 255, 255, 0.6)",
+                            fontStyle: "italic",
+                          }}
+                        >
+                          No attendees yet
+                        </Typography>
+                      )}
+                    </Box>
+                  </Collapse>
+                </Box>
+              );
+            })}
+          </Box>
+        )}
+      </Box>
 
       {/* Create Event Modal */}
       {groupId && (

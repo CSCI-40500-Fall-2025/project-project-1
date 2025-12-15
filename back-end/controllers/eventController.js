@@ -10,6 +10,9 @@ import {
   getAllEventsForUser as getAllEventsForUserService,
   getAllEventsForGroup as getAllEventsForGroupService,
   getAllMembersEventsForGroup as getAllMembersEventsForGroupService,
+  addUserToEvent as addUserToEventService,
+  removeUserFromEvent as removeUserFromEventService,
+  checkUserAttendingEvent as checkUserAttendingEventService,
 } from "../services/eventService.js";
 
 export async function getAllEvents(req, res) {
@@ -351,5 +354,88 @@ export async function increaseAttendees(req, res) {
     res.status(200).json(updatedEvent);
   } catch (err) {
     res.status(500).json({ error: "Failed to update attendees" });
+  }
+}
+
+export async function attendEvent(req, res) {
+  try {
+    const { event_id } = req.params;
+    const user = req.user;
+
+    if (!event_id) {
+      return res.status(400).json({ error: "Event ID is required" });
+    }
+
+    if (!user || !user.id) {
+      return res.status(401).json({ error: "User must be authenticated" });
+    }
+
+    const result = await addUserToEventService(event_id, user.id);
+
+    if (result.alreadyAttending) {
+      return res
+        .status(400)
+        .json({ error: "User is already attending this event" });
+    }
+
+    res.status(200).json({ message: "Successfully joined event", ...result });
+  } catch (err) {
+    console.error("Error attending event:", err);
+    res
+      .status(500)
+      .json({ error: "Failed to attend event", details: err.message });
+  }
+}
+
+export async function unattendEvent(req, res) {
+  try {
+    const { event_id } = req.params;
+    const user = req.user;
+
+    if (!event_id) {
+      return res.status(400).json({ error: "Event ID is required" });
+    }
+
+    if (!user || !user.id) {
+      return res.status(401).json({ error: "User must be authenticated" });
+    }
+
+    const result = await removeUserFromEventService(event_id, user.id);
+
+    if (result.notAttending) {
+      return res
+        .status(400)
+        .json({ error: "User is not attending this event" });
+    }
+
+    res.status(200).json({ message: "Successfully left event", ...result });
+  } catch (err) {
+    console.error("Error unattending event:", err);
+    res
+      .status(500)
+      .json({ error: "Failed to leave event", details: err.message });
+  }
+}
+
+export async function checkUserAttendance(req, res) {
+  try {
+    const { event_id } = req.params;
+    const user = req.user;
+
+    if (!event_id) {
+      return res.status(400).json({ error: "Event ID is required" });
+    }
+
+    if (!user || !user.id) {
+      return res.status(401).json({ error: "User must be authenticated" });
+    }
+
+    const isAttending = await checkUserAttendingEventService(event_id, user.id);
+    res.status(200).json({ isAttending });
+  } catch (err) {
+    console.error("Error checking attendance:", err);
+    res
+      .status(500)
+      .json({ error: "Failed to check attendance", details: err.message });
   }
 }

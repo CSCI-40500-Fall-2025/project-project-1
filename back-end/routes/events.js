@@ -11,6 +11,9 @@ import {
   createEventAndEventParticipants,
   getEventById,
   getEventAndParticipantsById,
+  attendEvent,
+  unattendEvent,
+  checkUserAttendance,
 } from "../controllers/eventController.js";
 import { authMiddleware } from "../services/authMiddleware.js";
 
@@ -40,5 +43,10 @@ router.post("/with-participants", createEventAndEventParticipants);
 router.delete("/:event_id", deleteEvent);
 router.put("/:event_id", updateEvent);
 router.patch("/:event_id/attendees", increaseAttendees);
+
+// Event attendance routes (must come after other :event_id routes but before generic ones)
+router.post("/:event_id/attend", authMiddleware, attendEvent);
+router.post("/:event_id/unattend", authMiddleware, unattendEvent);
+router.get("/:event_id/attendance", authMiddleware, checkUserAttendance);
 
 export default router;

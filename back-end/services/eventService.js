@@ -209,29 +209,47 @@ export async function createEvent({
   end_time,
   rrule,
 }) {
-  const query = `
-    INSERT INTO events
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    // Create the event
+    const eventResult = await client.query(
+      `INSERT INTO events
       (group_id, event_title, event_description, event_datetime, location, event_host, attendees, start_time, end_time, rrule)
-    VALUES
-      ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-    RETURNING *;
-  `;
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      RETURNING *;`,
+      [
+        group_id,
+        event_title,
+        event_description,
+        event_datetime,
+        location,
+        event_host,
+        attendees || 1,
+        start_time,
+        end_time,
+        rrule,
+      ]
+    );
 
-  const values = [
-    group_id,
-    event_title,
-    event_description,
-    event_datetime,
-    location,
-    event_host,
-    attendees,
-    start_time,
-    end_time,
-    rrule,
-  ];
+    const event = eventResult.rows[0];
 
-  const rows = await sql.query(query, values);
-  return rows[0];
+    // Add the host to event_participants
+    await client.query(
+      `INSERT INTO event_participants (event_id, user_id) VALUES ($1, $2)`,
+      [event.event_id, event_host]
+    );
+
+    await client.query("COMMIT");
+
+    return event;
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 export async function deleteEvent(event_id) {
@@ -308,4 +326,81 @@ export async function increaseAttendees(event_id, attendeeCount) {
   const rows = await sql.query(query, [attendeeCount, event_id]);
 
   return rows[0] || null;
+}
+
+export async function addUserToEvent(event_id, user_id) {
+  try {
+    // Check if user is already attending
+    const existing = await sql`
+      SELECT * FROM event_participants
+      WHERE event_id = ${event_id} AND user_id = ${user_id}
+    `;
+
+    if (existing.length > 0) {
+      return { alreadyAttending: true };
+    }
+
+    // Add user to event_participants
+    await sql`
+      INSERT INTO event_participants (event_id, user_id)
+      VALUES (${event_id}, ${user_id})
+    `;
+
+    // Increment attendees count
+    await sql`
+      UPDATE events
+      SET attendees = COALESCE(attendees, 0) + 1
+      WHERE event_id = ${event_id}
+    `;
+
+    return { success: true };
+  } catch (err) {
+    console.error("Error adding user to event:", err);
+    throw err;
+  }
+}
+
+export async function removeUserFromEvent(event_id, user_id) {
+  try {
+    // Check if user is attending
+    const existing = await sql`
+      SELECT * FROM event_participants
+      WHERE event_id = ${event_id} AND user_id = ${user_id}
+    `;
+
+    if (existing.length === 0) {
+      return { notAttending: true };
+    }
+
+    // Remove user from event_participants
+    await sql`
+      DELETE FROM event_participants
+      WHERE event_id = ${event_id} AND user_id = ${user_id}
+    `;
+
+    // Decrement attendees count (but don't go below 0)
+    await sql`
+      UPDATE events
+      SET attendees = GREATEST(COALESCE(attendees, 0) - 1, 0)
+      WHERE event_id = ${event_id}
+    `;
+
+    return { success: true };
+  } catch (err) {
+    console.error("Error removing user from event:", err);
+    throw err;
+  }
+}
+
+export async function checkUserAttendingEvent(event_id, user_id) {
+  try {
+    const result = await sql`
+      SELECT * FROM event_participants
+      WHERE event_id = ${event_id} AND user_id = ${user_id}
+    `;
+    return result.length > 0;
+  } catch (err) {
+    console.error("Error checking user attendance:", err);
+    return false;
+  }
 }

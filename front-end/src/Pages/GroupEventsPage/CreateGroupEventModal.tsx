@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { TextField, Typography, Alert, Box } from "@mui/material";
+import { TextField, Box } from "@mui/material";
 import EventIcon from "@mui/icons-material/Event";
 import { useAuth } from "../../AuthContext";
 import { createEvent } from "../../services/calendarServices";
@@ -131,6 +131,7 @@ const CreateGroupEventModal: React.FC<CreateGroupEventModalProps> = ({
       submitButtonIcon={<EventIcon />}
       onSubmit={handleSubmit}
       isSubmitDisabled={!eventTitle.trim() || !startTime || !endTime}
+      disableBackdropClick={true}
     >
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         <TextField
@@ -161,7 +162,7 @@ const CreateGroupEventModal: React.FC<CreateGroupEventModalProps> = ({
         />
 
         <TextField
-          label="Start Time"
+          label="Start Date & Time"
           type="datetime-local"
           value={startTime}
           onChange={(e) => setStartTime(e.target.value)}
@@ -174,7 +175,7 @@ const CreateGroupEventModal: React.FC<CreateGroupEventModalProps> = ({
         />
 
         <TextField
-          label="End Time"
+          label="End Date & Time"
           type="datetime-local"
           value={endTime}
           onChange={(e) => setEndTime(e.target.value)}

@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React, { type ReactNode } from "react";
 import {
   Modal,
   Box,
@@ -58,6 +58,7 @@ interface BaseGroupModalProps {
   isSubmitDisabled: boolean;
   children: ReactNode;
   infoAlert?: ReactNode;
+  disableBackdropClick?: boolean;
 }
 
 const BaseGroupModal: React.FC<BaseGroupModalProps> = ({
@@ -76,6 +77,7 @@ const BaseGroupModal: React.FC<BaseGroupModalProps> = ({
   isSubmitDisabled,
   children,
   infoAlert,
+  disableBackdropClick = false,
 }) => {
   const handleClose = () => {
     if (!loading) {
@@ -83,10 +85,25 @@ const BaseGroupModal: React.FC<BaseGroupModalProps> = ({
     }
   };
 
+  const handleModalClose = (
+    _event: object,
+    reason: "backdropClick" | "escapeKeyDown"
+  ) => {
+    if (disableBackdropClick && reason === "backdropClick") {
+      return; // Don't close on backdrop click if disabled
+    }
+    if (
+      reason === "escapeKeyDown" ||
+      (!disableBackdropClick && reason === "backdropClick")
+    ) {
+      handleClose();
+    }
+  };
+
   return (
     <Modal
       open={open}
-      onClose={handleClose}
+      onClose={handleModalClose}
       BackdropProps={{
         sx: backdropStyle,
       }}
@@ -176,4 +193,3 @@ const BaseGroupModal: React.FC<BaseGroupModalProps> = ({
 };
 
 export default BaseGroupModal;
-

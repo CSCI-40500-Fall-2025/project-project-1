@@ -140,30 +140,63 @@ describe("Event Service", () => {
     describe("createEvent", () => {
       const newEventData = { ...createFakeEvent() };
       delete newEventData.event_id;
+      let mockClient;
+
+      beforeEach(() => {
+        mockClient = createMockPgClient(true);
+        pool.connect.mockResolvedValue(mockClient);
+      });
+
       test("should insert a new event and return it", async () => {
-        sql.query.mockResolvedValue([fakeEvent]);
+        mockClient.query
+          .mockResolvedValueOnce({ rows: [] }) // BEGIN
+          .mockResolvedValueOnce({ rows: [fakeEvent] }) // INSERT event
+          .mockResolvedValueOnce({ rows: [] }) // INSERT participant
+          .mockResolvedValueOnce({ rows: [] }); // COMMIT
 
         const result = await eventService.createEvent(newEventData);
 
-        expect(sql.query).toHaveBeenCalledWith(
+        expect(pool.connect).toHaveBeenCalledTimes(1);
+        expect(mockClient.query).toHaveBeenCalledWith("BEGIN");
+        expect(mockClient.query).toHaveBeenCalledWith(
           expect.stringContaining("INSERT INTO events"),
-          Object.values(newEventData)
+          expect.arrayContaining([
+            newEventData.group_id,
+            newEventData.event_title,
+            newEventData.event_description,
+            newEventData.event_datetime,
+            newEventData.location,
+            newEventData.event_host,
+          ])
         );
+        expect(mockClient.query).toHaveBeenCalledWith(
+          expect.stringContaining("INSERT INTO event_participants"),
+          [fakeEvent.event_id, newEventData.event_host]
+        );
+        expect(mockClient.query).toHaveBeenCalledWith("COMMIT");
+        expect(mockClient.release).toHaveBeenCalledTimes(1);
         expect(result).toEqual(fakeEvent);
       });
 
       test("should throw an error if insertion fails", async () => {
         const dbError = new Error("DB insertion failure");
-        sql.query.mockRejectedValue(dbError);
+        mockClient.query
+          .mockResolvedValueOnce({ rows: [] }) // BEGIN
+          .mockRejectedValueOnce(dbError) // Fail on event INSERT
+          .mockResolvedValueOnce({ rows: [] }); // ROLLBACK
 
         await expect(eventService.createEvent(newEventData)).rejects.toThrow(
           dbError.message
         );
 
-        expect(sql.query).toHaveBeenCalledWith(
+        expect(mockClient.query).toHaveBeenCalledWith("BEGIN");
+        expect(mockClient.query).toHaveBeenCalledWith(
           expect.stringContaining("INSERT INTO events"),
-          Object.values(newEventData)
+          expect.any(Array)
         );
+        expect(mockClient.query).toHaveBeenCalledWith("ROLLBACK");
+        expect(mockClient.query).not.toHaveBeenCalledWith("COMMIT");
+        expect(mockClient.release).toHaveBeenCalledTimes(1);
       });
     });
 
