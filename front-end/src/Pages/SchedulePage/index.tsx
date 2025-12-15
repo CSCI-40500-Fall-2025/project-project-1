@@ -164,15 +164,16 @@ const FirstPage = () => {
         sx={{
           display: "flex",
           flexDirection: "column",
-          gap: 2,
+          gap: 1.5,
           marginRight: 4,
           marginTop: 10,
-          backgroundColor: "#7358d8ff",
-          height: "calc(100vh - 700px)",
+          backgroundColor: "#6447ccff",
+          height: "60%",
           justifyContent: "center",
           alignItems: "center",
           width: 500,
           borderRadius: 5,
+          boxShadow: 5
         }}
         onSubmit={handleSubmit}
       >
@@ -181,9 +182,10 @@ const FirstPage = () => {
           onClick={handleGetRecommendations}
           disabled={loadingRecommendations}
           sx={{
-            backgroundColor: '#8B5FBF',
+            color: "white",
+            backgroundColor: 'rgb(221, 47, 120)',
             '&:hover': {
-              backgroundColor: '#7358d8',
+              backgroundColor: '#da4cceff',
             },
             mb: 2,
           }}
