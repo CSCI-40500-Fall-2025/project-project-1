@@ -67,8 +67,9 @@ const JoinGroupModal: React.FC<JoinGroupModalProps> = ({
       // Clear form and close modal after success
       setTimeout(() => {
         resetAndClose();
-        // Optional: refresh the page or update state
-        window.location.reload();
+        // Reload while preserving the current URL
+        const currentUrl = window.location.href;
+        window.location.href = currentUrl;
       }, 1500);
     } catch (err: unknown) {
       console.error("Join group error:", err);

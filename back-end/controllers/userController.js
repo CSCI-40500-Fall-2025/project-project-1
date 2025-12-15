@@ -99,9 +99,8 @@ export async function loginUser(req, res) {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,
-      // secure: process.env.NODE_ENV === "production", // if true, needs to be https. Set to false for local testing (http)
-      sameSite: "none",
+      secure: process.env.NODE_ENV === "production", // if true, needs to be https. Set to false for local testing (http)
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // "none" requires secure: true, use "lax" for local dev
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     });
     res.json({
@@ -119,7 +118,7 @@ export async function logoutUser(req, res) {
   res.cookie("token", "", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     expires: new Date(0), // expire immediately
   });
   res.json({ message: "Logged out successfully" });

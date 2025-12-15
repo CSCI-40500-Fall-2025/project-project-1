@@ -5,6 +5,9 @@ import {
   getGroupByInvitationCode,
   checkUserInGroup,
   addUserToGroup,
+  getGroupsForUser,
+  getGroupMembers,
+  getGroupById,
 } from "../services/groupService.js";
 
 const alphabetAndNumbers =
@@ -16,6 +19,22 @@ export async function getGroups(req, res) {
     res.json(events);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch events" });
+  }
+}
+
+export async function getUserGroups(req, res) {
+  try {
+    const userId = req.user?.id || req.query.user_id;
+
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+
+    const groups = await getGroupsForUser(userId);
+    res.json(groups);
+  } catch (err) {
+    console.error("Error fetching user groups:", err);
+    res.status(500).json({ error: "Failed to fetch user groups" });
   }
 }
 
@@ -154,5 +173,35 @@ async function joinGroupByInviteCodeWithRetry(
 
       await new Promise((resolve) => setTimeout(resolve, Math.pow(2, i) * 100));
     }
+  }
+}
+
+export async function getGroupDetails(req, res) {
+  try {
+    const { groupId } = req.params;
+
+    if (!groupId) {
+      return res.status(400).json({ error: "Group ID is required" });
+    }
+
+    const group = await getGroupById(groupId);
+    if (!group) {
+      return res.status(404).json({ error: "Group not found" });
+    }
+
+    const members = await getGroupMembers(groupId);
+
+    res.json({
+      group: {
+        group_id: group.group_id,
+        group_name: group.group_name,
+        invitation_code: group.invitation_code,
+        num_members: group.num_members,
+      },
+      members: members,
+    });
+  } catch (err) {
+    console.error("Error fetching group details:", err);
+    res.status(500).json({ error: "Failed to fetch group details" });
   }
 }

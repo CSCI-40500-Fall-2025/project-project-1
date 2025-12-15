@@ -13,8 +13,8 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  logout: () => { },
-  refreshUser: async () => { }
+  logout: () => {},
+  refreshUser: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -32,18 +32,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           userID: data.id,
         };
         setUser(newUser);
-        logAction('info', 'user' , 'logged in');
+        logAction("info", "user", "logged in");
       } else {
         setUser(null); // invalid or missing data
       }
     } catch (err: unknown) {
+      // Always set user to null on error (backend down, not logged in, etc.)
+      setUser(null);
       if (err instanceof Error) {
         console.error("Failed to fetch user:", err.message);
-        logAction('error', 'login', 'failed');
+        logAction("error", "login", "failed");
       } else {
         console.error("Failed to fetch user:", err);
-        logAction('error', 'login', 'failed');
-        setUser(null);
+        logAction("error", "login", "failed");
       }
     } finally {
       setLoading(false);
@@ -55,10 +56,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = async () => {
+    // Always clear user state first, even if backend call fails
+    // This ensures the UI updates immediately and user can't access protected routes
+    setUser(null);
+
     try {
       await logoutUser();
-      setUser(null);
     } catch (err: unknown) {
+      // Log error but don't prevent logout
+      // If backend is down, we've already cleared the frontend state
+      // The cookie will be cleared when backend is running
       if (err instanceof Error) {
         console.error("Logout failed:", err.message);
       } else {

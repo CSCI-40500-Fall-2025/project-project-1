@@ -1,13 +1,8 @@
-// import React from "react";
 import AppBar from "@mui/material/AppBar";
-import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
-import MenuIcon from "@mui/icons-material/Menu";
 import { useNavigate } from "react-router-dom";
-import Divider from "@mui/material/Divider";
 import { APP_NAME } from "../const";
 
 interface NavbarProps {
@@ -24,60 +19,76 @@ const Navbar = ({ loggedIn, logOut }: NavbarProps) => {
   };
 
   return (
-    <Box sx={{ borderRadius: 1, }}>
-      <AppBar position="fixed">
-        <Toolbar>
-          <IconButton
-            size="large"
-            edge="start"
+    <AppBar
+      position="fixed"
+      sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
+    >
+      <Toolbar>
+        <Typography
+          variant="h6"
+          component="div"
+          sx={{
+            textDecoration: "none",
+            color: "inherit",
+            flexGrow: 1,
+            "&:hover": {
+              cursor: "pointer",
+            },
+          }}
+          onClick={() => handleNavItemClick("home")}
+        >
+          {APP_NAME}
+        </Typography>
+        {loggedIn ? (
+          <>
+            {navItems.map((item) => (
+              <Button
+                key={item}
+                color="inherit"
+                onClick={() => handleNavItemClick(item)}
+                sx={{
+                  textTransform: "none",
+                  "&:hover": {
+                    backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  },
+                }}
+              >
+                {item}
+              </Button>
+            ))}
+            <Button
+              color="inherit"
+              onClick={async () => {
+                await logOut();
+                navigate("/login");
+              }}
+              sx={{
+                textTransform: "none",
+                marginLeft: 1,
+                "&:hover": {
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                },
+              }}
+            >
+              Log Out
+            </Button>
+          </>
+        ) : (
+          <Button
             color="inherit"
-            aria-label="menu"
-            sx={{ mr: 2 }}
-          >
-          </IconButton>
-          <Typography
-            variant="h6"
-            component="div"
+            onClick={() => handleNavItemClick("login")}
             sx={{
-              textDecoration: "none",
-              color: "inherit",
+              textTransform: "none",
               "&:hover": {
-                cursor: "pointer",
+                backgroundColor: "rgba(255, 255, 255, 0.1)",
               },
             }}
-            onClick={() => handleNavItemClick("")}
-            flexGrow={1}
           >
-            {APP_NAME}
-          </Typography>
-          {loggedIn ? (
-            <>
-              {navItems.map((item) => (
-                <Button
-                  key={item}
-                  onClick={() => handleNavItemClick(item)}
-                >
-                  {item}
-                </Button>
-              ))}
-              <Button color="inherit" onClick={() => logOut()}>
-                Log Out
-              </Button>
-            </>
-          ) : (
-            <>
-              <Divider />
-              <Button
-                color="inherit"
-                onClick={() => handleNavItemClick("login")}
-              >
-                Login
-              </Button>
-            </>
-          )}
-        </Toolbar>
-      </AppBar>
-    </Box>
+            Login
+          </Button>
+        )}
+      </Toolbar>
+    </AppBar>
   );
 };
 export default Navbar;

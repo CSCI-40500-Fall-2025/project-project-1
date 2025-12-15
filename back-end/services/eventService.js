@@ -3,7 +3,7 @@ import { pool } from "../db/pgPool.js";
 
 export async function getAllEvents() {
   const query = `SELECT * FROM events`;
-  const rows  = await sql.query(query);
+  const rows = await sql.query(query);
   return rows;
 }
 export async function getEventById(event_id) {
@@ -24,10 +24,104 @@ export async function getAllEventsForUser(user_id) {
   WHERE e.event_host = $1
     OR ep.user_id = $1`;
   try {
-    const rows = await sql.query(query, [user_id]); 
+    const rows = await sql.query(query, [user_id]);
     return rows || null;
   } catch (err) {
     console.error("Error fetching events for user:", err);
+    throw err;
+  }
+}
+
+export async function getAllEventsForGroup(group_id) {
+  try {
+    const result = await sql`
+      SELECT * FROM events
+      WHERE group_id = ${group_id}
+      ORDER BY event_datetime ASC
+    `;
+    return result || [];
+  } catch (err) {
+    console.error("Error fetching events for group:", err);
+    throw err;
+  }
+}
+
+export async function getEventParticipantsWithUsernames(eventIds) {
+  try {
+    if (!eventIds || eventIds.length === 0) {
+      return {};
+    }
+
+    const result = await sql`
+      SELECT
+        ep.event_id,
+        ep.user_id,
+        u.username
+      FROM event_participants ep
+      INNER JOIN users u ON ep.user_id = u.id
+      WHERE ep.event_id = ANY(${eventIds})
+      ORDER BY ep.event_id, u.username
+    `;
+
+    // Group participants by event_id
+    const participantsByEvent = {};
+    result.forEach((row) => {
+      if (!participantsByEvent[row.event_id]) {
+        participantsByEvent[row.event_id] = [];
+      }
+      participantsByEvent[row.event_id].push({
+        user_id: row.user_id,
+        username: row.username,
+      });
+    });
+
+    return participantsByEvent;
+  } catch (err) {
+    console.error("Error fetching event participants with usernames:", err);
+    return {};
+  }
+}
+
+export async function getAllMembersEventsForGroup(group_id) {
+  try {
+    // Get all events for all group members (hosted or participating)
+    // Return events with username but without detailed event info
+    // Exclude events that are already group events (group_id matches)
+    const result = await sql`
+      SELECT DISTINCT
+        e.event_id,
+        e.start_time,
+        e.end_time,
+        e.event_datetime,
+        u.id as user_id,
+        u.username
+      FROM events e
+      INNER JOIN event_participants ep ON e.event_id = ep.event_id
+      INNER JOIN users u ON ep.user_id = u.id
+      INNER JOIN group_users gu ON u.id = gu.user_id
+      WHERE gu.group_id = ${group_id}
+        AND (e.group_id IS NULL OR e.group_id != ${group_id})
+
+      UNION
+
+      SELECT DISTINCT
+        e.event_id,
+        e.start_time,
+        e.end_time,
+        e.event_datetime,
+        u.id as user_id,
+        u.username
+      FROM events e
+      INNER JOIN users u ON e.event_host = u.id
+      INNER JOIN group_users gu ON u.id = gu.user_id
+      WHERE gu.group_id = ${group_id}
+        AND (e.group_id IS NULL OR e.group_id != ${group_id})
+
+      ORDER BY start_time ASC
+    `;
+    return result || [];
+  } catch (err) {
+    console.error("Error fetching members events for group:", err);
     throw err;
   }
 }
@@ -113,31 +207,49 @@ export async function createEvent({
   attendees,
   start_time,
   end_time,
-  rrule
+  rrule,
 }) {
-  const query = `
-    INSERT INTO events
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    // Create the event
+    const eventResult = await client.query(
+      `INSERT INTO events
       (group_id, event_title, event_description, event_datetime, location, event_host, attendees, start_time, end_time, rrule)
-    VALUES
-      ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-    RETURNING *;
-  `;
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      RETURNING *;`,
+      [
+        group_id,
+        event_title,
+        event_description,
+        event_datetime,
+        location,
+        event_host,
+        attendees || 1,
+        start_time,
+        end_time,
+        rrule,
+      ]
+    );
 
-  const values = [
-    group_id,
-    event_title,
-    event_description,
-    event_datetime,
-    location,
-    event_host,
-    attendees,
-    start_time,
-    end_time,
-    rrule
-  ];
+    const event = eventResult.rows[0];
 
-  const rows = await sql.query(query, values);
-  return rows[0];
+    // Add the host to event_participants
+    await client.query(
+      `INSERT INTO event_participants (event_id, user_id) VALUES ($1, $2)`,
+      [event.event_id, event_host]
+    );
+
+    await client.query("COMMIT");
+
+    return event;
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 export async function deleteEvent(event_id) {
@@ -175,7 +287,7 @@ export async function updateEvent(event_id, updateData) {
     "attendees",
     "start_time",
     "end_time",
-    "rrule"
+    "rrule",
   ];
 
   const keys = Object.keys(updateData).filter(
@@ -214,4 +326,81 @@ export async function increaseAttendees(event_id, attendeeCount) {
   const rows = await sql.query(query, [attendeeCount, event_id]);
 
   return rows[0] || null;
+}
+
+export async function addUserToEvent(event_id, user_id) {
+  try {
+    // Check if user is already attending
+    const existing = await sql`
+      SELECT * FROM event_participants
+      WHERE event_id = ${event_id} AND user_id = ${user_id}
+    `;
+
+    if (existing.length > 0) {
+      return { alreadyAttending: true };
+    }
+
+    // Add user to event_participants
+    await sql`
+      INSERT INTO event_participants (event_id, user_id)
+      VALUES (${event_id}, ${user_id})
+    `;
+
+    // Increment attendees count
+    await sql`
+      UPDATE events
+      SET attendees = COALESCE(attendees, 0) + 1
+      WHERE event_id = ${event_id}
+    `;
+
+    return { success: true };
+  } catch (err) {
+    console.error("Error adding user to event:", err);
+    throw err;
+  }
+}
+
+export async function removeUserFromEvent(event_id, user_id) {
+  try {
+    // Check if user is attending
+    const existing = await sql`
+      SELECT * FROM event_participants
+      WHERE event_id = ${event_id} AND user_id = ${user_id}
+    `;
+
+    if (existing.length === 0) {
+      return { notAttending: true };
+    }
+
+    // Remove user from event_participants
+    await sql`
+      DELETE FROM event_participants
+      WHERE event_id = ${event_id} AND user_id = ${user_id}
+    `;
+
+    // Decrement attendees count (but don't go below 0)
+    await sql`
+      UPDATE events
+      SET attendees = GREATEST(COALESCE(attendees, 0) - 1, 0)
+      WHERE event_id = ${event_id}
+    `;
+
+    return { success: true };
+  } catch (err) {
+    console.error("Error removing user from event:", err);
+    throw err;
+  }
+}
+
+export async function checkUserAttendingEvent(event_id, user_id) {
+  try {
+    const result = await sql`
+      SELECT * FROM event_participants
+      WHERE event_id = ${event_id} AND user_id = ${user_id}
+    `;
+    return result.length > 0;
+  } catch (err) {
+    console.error("Error checking user attendance:", err);
+    return false;
+  }
 }

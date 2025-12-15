@@ -1,6 +1,6 @@
 import type { User } from "../const";
-import  { logAction } from "../logger";
-const API_URL = "https://project-project-1.onrender.com/api"; //"http://localhost:3000/api"//
+import { logAction } from "../logger";
+const API_URL = "http://localhost:3000/api"; //"https://project-project-1.onrender.com/api"; //"http://localhost:3000/api"//
 
 export async function createUser(
   email: string,
@@ -23,7 +23,7 @@ export async function createUser(
 
   if (!res.ok) {
     const errMessage = data?.error || "Failed to create user";
-    logAction('error','Create User', 'Failed');
+    logAction("error", "Create User", "Failed");
     throw new Error(errMessage);
   }
 
@@ -73,34 +73,56 @@ export async function getUser() {
 }
 
 export async function logoutUser() {
-  const res = await fetch(`${API_URL}/user/logout`, {
-    method: "POST",
-    credentials: "include", // include cookie to overwrite it
-  });
-  if (!res.ok) {
-    let errData = { error: "Failed to log out" };
-    try {
-      errData = await res.json();
-    } catch (e) {
-      console.error("Failed to parse error JSON:", e);
+  try {
+    const res = await fetch(`${API_URL}/user/logout`, {
+      method: "POST",
+      credentials: "include", // include cookie to overwrite it
+    });
+    if (!res.ok) {
+      let errData = { error: "Failed to log out" };
+      try {
+        errData = await res.json();
+      } catch (e) {
+        console.error("Failed to parse error JSON:", e);
+      }
+      throw new Error(errData.error);
     }
-    throw new Error(errData.error);
+    return res.json();
+  } catch (err) {
+    // Handle network errors (backend down, etc.)
+    // Don't throw - let the frontend handle logout even if backend is down
+    if (err instanceof TypeError) {
+      console.warn(
+        "Backend unavailable during logout, but frontend state will be cleared"
+      );
+      return { message: "Logged out (backend unavailable)" };
+    }
+    throw err;
   }
-  return res.json();
 }
 
 export async function checkLogin() {
-  const res = await fetch(`${API_URL}/user/me`, {
-    credentials: "include",
-  });
-  if (!res.ok) {
-    let errData = { error: "Failed to check Login" };
-    try {
-      errData = await res.json();
-    } catch (e) {
-      console.error("Failed to parse error JSON:", e);
+  try {
+    const res = await fetch(`${API_URL}/user/me`, {
+      credentials: "include",
+    });
+    if (!res.ok) {
+      let errData = { error: "Failed to check Login" };
+      try {
+        errData = await res.json();
+      } catch (e) {
+        console.error("Failed to parse error JSON:", e);
+      }
+      throw new Error(errData.error);
     }
-    throw new Error(errData.error);
+    return await res.json();
+  } catch (err) {
+    // Handle network errors (backend down, CORS issues, etc.)
+    // TypeError occurs when fetch fails (network error, connection refused, etc.)
+    if (err instanceof TypeError) {
+      throw new Error("Cannot connect to server");
+    }
+    // Re-throw other errors (like Error from !res.ok)
+    throw err;
   }
-  return await res.json();
 }

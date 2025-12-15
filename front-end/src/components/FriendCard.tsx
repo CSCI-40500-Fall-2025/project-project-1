@@ -1,11 +1,18 @@
 import { useState } from "react";
-import { Box, Typography, IconButton, Modal, Stack, Button } from "@mui/material";
+import {
+  Box,
+  Typography,
+  IconButton,
+  Modal,
+  Stack,
+  Button,
+} from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import type { User } from '../const'
-import { logAction } from "../logger"; 
+import type { User } from "../const";
+import { logAction } from "../logger";
 
 interface Friend {
-    friend: User;
+  friend: User;
 }
 
 const FriendCard = ({ friend }: Friend) => {
@@ -129,6 +136,5 @@ const FriendCard = ({ friend }: Friend) => {
     </>
   );
 };
-
 
 export default FriendCard;
