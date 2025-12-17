@@ -1,5 +1,5 @@
 // services/groupServices.ts
-const API_URL = "http://localhost:3000/api"; //
+const API_URL = "https://project-project-1.onrender.com/api";//"http://localhost:3000/api"; //
 
 export interface Group {
   group_id: string;

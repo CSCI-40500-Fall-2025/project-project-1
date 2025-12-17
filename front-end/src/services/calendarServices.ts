@@ -1,5 +1,5 @@
 import type { Event } from "../const";
-const API_URL = "http://localhost:3000/api"; //"https://project-project-1.onrender.com/api"//
+const API_URL = "https://project-project-1.onrender.com/api";//"http://localhost:3000/api";
 
 export async function getUserEvents(): Promise<Event[]> {
   const res = await fetch(`${API_URL}/events/user`, {

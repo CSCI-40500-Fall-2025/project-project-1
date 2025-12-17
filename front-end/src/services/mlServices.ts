@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5001/api";
+const API_URL = "https://project-project-1.onrender.com/api";//"http://localhost:5001/api";
 
 export interface TimeSlotRecommendation {
   datetime: string;
