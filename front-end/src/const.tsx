@@ -57,7 +57,7 @@ export type CalendarEvent = {
   rrule?: RecurrenceRule;
   originalStart?: Date;
   originalEnd?: Date;
-  Event: Event;
+  Event?: Event;
   isBusy?: boolean; // Flag to indicate this is a "busy" event (private member event)
 };
 

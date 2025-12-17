@@ -19,8 +19,8 @@ const CustomToolbar = (toolbar: any) => {
     <div className="rbc-toolbar">
       <span className="rbc-btn-group">
         <button type="button" onClick={() => toolbar.onNavigate('TODAY')}>Today</button>
-        <button type="button" onClick={() => toolbar.onNavigate('PREV')}><BsChevronCompactLeft style={{fontSize: '25px'}}/></button>
-        <button type="button" onClick={() => toolbar.onNavigate('NEXT')}><BsChevronCompactRight style={{fontSize: '25px'}}/></button>
+        <button type="button" onClick={() => toolbar.onNavigate('PREV')}><BsChevronCompactLeft style={{ fontSize: '25px' }} /></button>
+        <button type="button" onClick={() => toolbar.onNavigate('NEXT')}><BsChevronCompactRight style={{ fontSize: '25px' }} /></button>
       </span>
       <span className="rbc-toolbar-label">{toolbar.label}</span>
       <span className="rbc-btn-group">
@@ -64,7 +64,7 @@ export default function ReactBigCalendar({ onDateSelect }: CalendarProps = {}) {
       start: new Date(2025, 10, 3, 10, 0),
       end: new Date(2025, 10, 3, 11, 0),
       title: "Weekly Meeting",
-      Event: {      
+      Event: {
         event_id: "",
         group_id: null,
         event_title: "Weekly Meeting",
@@ -85,7 +85,7 @@ export default function ReactBigCalendar({ onDateSelect }: CalendarProps = {}) {
   const [currentView, setCurrentView] = useState<View>("week");
   const [date, setDate] = useState(new Date());
   const [showModal, setShowModal] = useState(false);
-  const [newEvent, setNewEvent] = useState<Event>({ 
+  const [newEvent, setNewEvent] = useState<Event>({
     event_id: "",
     group_id: null,
     event_title: "",
@@ -101,7 +101,7 @@ export default function ReactBigCalendar({ onDateSelect }: CalendarProps = {}) {
 
   const handleSelectSlot = ({ start, end }: { start: Date; end: Date }) => {
     setShowModal(true);
-    setNewEvent({ 
+    setNewEvent({
       event_id: "",
       group_id: null,
       event_title: "",
@@ -141,8 +141,8 @@ export default function ReactBigCalendar({ onDateSelect }: CalendarProps = {}) {
 
   const handleSubmit = () => {
     // Editing existing event (new events have no id)
-    if (newEvent.event_id !== "" ) {
-      updateEvent(newEvent.event_id, 
+    if (newEvent.event_id !== "") {
+      updateEvent(newEvent.event_id,
         {
           event_title: newEvent.event_title,
           event_description: newEvent.event_description,
@@ -153,7 +153,10 @@ export default function ReactBigCalendar({ onDateSelect }: CalendarProps = {}) {
         }
       ).then((updatedEvent) => { //after updating event successfully on backend, update local state
         setEventsData((prev) => {
-          const filteredEvents = prev.filter(event => event.Event.event_id !== updatedEvent.event_id);
+          const filteredEvents = prev.filter(
+            event => !event.Event || event.Event.event_id !== updatedEvent.event_id
+          );
+
           return [
             ...filteredEvents,
             {
@@ -169,27 +172,28 @@ export default function ReactBigCalendar({ onDateSelect }: CalendarProps = {}) {
         console.error("Failed to update event:", err);
       });
     } else { // Creating new event
-        createEvent(newEvent).then((createdEvent) => {
-          console.log("Event created successfully:", createdEvent);
-          setEventsData((prev) => [
-            ...prev,
-            {
-              start: new Date(createdEvent.start_time),
-              end: new Date(createdEvent.end_time),
-              title: createdEvent.event_title,
-              Event: createdEvent
-            },
-          ]);
-          fetchCalendar(); //rerender for expandrecurring events
-        }).catch((err) => {
-          console.error("Failed to create event:", err);
-        });
+      createEvent(newEvent).then((createdEvent) => {
+        console.log("Event created successfully:", createdEvent);
+        setEventsData((prev) => [
+          ...prev,
+          {
+            start: new Date(createdEvent.start_time),
+            end: new Date(createdEvent.end_time),
+            title: createdEvent.event_title,
+            Event: createdEvent
+          },
+        ]);
+        fetchCalendar(); //rerender for expandrecurring events
+      }).catch((err) => {
+        console.error("Failed to create event:", err);
+      });
     }
 
     setShowModal(false);
   };
 
   const handleEditEvent = (clickedEvent: CalendarEvent) => {
+    if (!clickedEvent.Event) return;
     console.log("Editing event:", clickedEvent);
     setNewEvent({
       event_id: clickedEvent.Event.event_id,
@@ -210,8 +214,8 @@ export default function ReactBigCalendar({ onDateSelect }: CalendarProps = {}) {
 
   const fetchCalendar = async () => {
     try {
-      const events = await getUserEvents(); 
-      
+      const events = await getUserEvents();
+
       const parsedEvents = events.map(event => ({
         start: new Date(event.start_time),
         end: new Date(event.end_time),
@@ -219,8 +223,8 @@ export default function ReactBigCalendar({ onDateSelect }: CalendarProps = {}) {
         rrule: event.rrule || undefined,
         Event: event
       }));
-      
-      setEventsData(parsedEvents); 
+
+      setEventsData(parsedEvents);
     } catch (err) {
       console.error("Failed to load calendar:", err);
     }
@@ -244,50 +248,47 @@ export default function ReactBigCalendar({ onDateSelect }: CalendarProps = {}) {
   }
 
   function expandRecurringEvents(events: CalendarEvent[]) {
-    const expanded: CalendarEvent[] = [];
+  const expanded: CalendarEvent[] = [];
+  const freqMap = { 1: RRule.DAILY, 2: RRule.WEEKLY, 3: RRule.MONTHLY };
 
-    const freqMap = {
-      1: RRule.DAILY,
-      2: RRule.WEEKLY,
-      3: RRule.MONTHLY,
+  events.forEach((event) => {
+    if (!event.Event) return; // skip events without backend Event
+
+    const baseEvent = {
+      ...event,
+      Event: { ...event.Event }, // now guaranteed to exist
     };
 
-    events.forEach((event) => {
-      // Recurring event
-      if (event.rrule && event.rrule.freq !== -1) {
-        const rule = new RRule({
-          ...event.rrule,
-          freq: freqMap[event.rrule.freq as 1 | 2 | 3],
-          dtstart: new Date(event.start), 
-        });
-        
-        const duration = event.end.getTime() - event.start.getTime();
-        //generate all occurrences based on rrule and put them in expanded array
-        rule.all().forEach((occurrence) => {
-          expanded.push({
-            ...event,
-            start: new Date(occurrence),
-            end: new Date(occurrence.getTime() + duration),
-            originalStart: new Date(event.start),
-            originalEnd: new Date(event.end), 
-            Event: { ...event.Event },
-          });
-        });
+    if (event.rrule && event.rrule.freq !== -1) {
+      const rule = new RRule({
+        ...event.rrule,
+        freq: freqMap[event.rrule.freq as 1 | 2 | 3],
+        dtstart: new Date(event.start),
+      });
 
-        return;
-      }
+      const duration = event.end.getTime() - event.start.getTime();
 
-      // Non-recurring event -> clone anyway
+      rule.all().forEach((occurrence) => {
+        expanded.push({
+          ...baseEvent,
+          start: new Date(occurrence),
+          end: new Date(occurrence.getTime() + duration),
+          originalStart: new Date(event.start),
+          originalEnd: new Date(event.end),
+        });
+      });
+    } else {
       expanded.push({
-        ...event,
+        ...baseEvent,
         start: new Date(event.start),
         end: new Date(event.end),
-        Event: { ...event.Event },
       });
-    });
+    }
+  });
 
-    return expanded;
-  }
+  return expanded;
+}
+
 
   // function expandRecurringEvents(events: CalendarEvent[]) {
   //   const expanded: CalendarEvent[] = [];
@@ -354,11 +355,11 @@ export default function ReactBigCalendar({ onDateSelect }: CalendarProps = {}) {
 
       <Dialog open={showModal} onClose={() => setShowModal(false)}>
         <TextField label="Event title" value={newEvent.event_title} onChange={(e) =>
-          setNewEvent((prev) => ({ 
-            ...prev, 
+          setNewEvent((prev) => ({
+            ...prev,
             event_title: e.target.value,
           }))
-        }/>
+        } />
         <TextField
           label="Event Description"
           value={newEvent.event_description}
@@ -370,11 +371,11 @@ export default function ReactBigCalendar({ onDateSelect }: CalendarProps = {}) {
           }
         />
         <TextField label="Location" value={newEvent.location} onChange={(e) =>
-          setNewEvent((prev) => ({ 
+          setNewEvent((prev) => ({
             ...prev,
             location: e.target.value,
           }))
-        }/>
+        } />
 
         <TextField
           label="Start Time"
@@ -401,10 +402,10 @@ export default function ReactBigCalendar({ onDateSelect }: CalendarProps = {}) {
         />
 
         <Select value={newEvent.rrule?.freq || -1} onChange={(e) =>
-          setNewEvent((prev) => ({ 
-            ...prev, 
-            rrule: { 
-              ...prev.rrule, 
+          setNewEvent((prev) => ({
+            ...prev,
+            rrule: {
+              ...prev.rrule,
               freq: e.target.value,
               count: prev.rrule?.count || 1
             }
@@ -416,7 +417,7 @@ export default function ReactBigCalendar({ onDateSelect }: CalendarProps = {}) {
           <MenuItem value={3}>Monthly</MenuItem>
         </Select>
         <TextField type="number" label="Count" value={newEvent.rrule?.count || 0} onChange={(e) =>
-          setNewEvent((prev) => ({ 
+          setNewEvent((prev) => ({
             ...prev,
             rrule: {
               ...prev.rrule,
@@ -424,10 +425,10 @@ export default function ReactBigCalendar({ onDateSelect }: CalendarProps = {}) {
               count: parseInt(e.target.value, 10) || 0
             }
           }))
-        }/>
+        } />
         <Button onClick={handleSubmit}>Set Event</Button>
       </Dialog>
     </div>
-    
+
   );
 }
