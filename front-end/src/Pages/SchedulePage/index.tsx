@@ -18,8 +18,8 @@ const FirstPage = () => {
     attendees: '',
   });
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
-  const [openSlot, setOpenSlot] = useState<{ start: string; end: string } | null>(null);
-  
+  const [openSlot] = useState<{ start: string; end: string } | null>(null);
+
   const handleDateSelect = (start: Date, end: Date) => {
     setFormData(prev => ({
       ...prev,
